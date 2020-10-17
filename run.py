@@ -16,25 +16,19 @@ python run.py --word2vec_file=./data/embedding/glove.6B.100d.txt --unk=unk
 '''
 
 if __name__ == '__main__':
+
     args = Config()
 
     parser = argparse.ArgumentParser()
-    # pretrained embeddings' file path
-    parser.add_argument('--word2vec_file', default=None) # 
-    # what is the label of unknown word in pretrained embedding
-    parser.add_argument('--unk', default=None) 
-    # whether use crf to calculate loss
-    parser.add_argument('--use_crf', action='store_true') 
-    parser.parse_args(namespace=args)
     
-    # # TODO updata arguments
-    # config.word2vec_file = args.word2vec_file
-    # config.unk_pretrained = args.unk
-    # config.use_crf = args.use_crf
+    parser.add_argument('--word2vec_file', default=None,
+                        help='where to load pretrained embeddings')  
+    parser.add_argument('--unk', default=None,
+                        help='what is the label of unknown word in word2vec_file') 
+    parser.add_argument('--use_crf', action='store_true',
+                        help='whether use crf to calculate loss') 
 
-    # # rename
-    # # TODO 可以把config的属性都扒下来给args吗
-    # args = config
+    parser.parse_args(namespace=args)
 
     # get training set
     train_sentences = read_file(args.train_file)

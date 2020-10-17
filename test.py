@@ -115,23 +115,27 @@ import torch.nn.functional as F
 #     print(l[i])
 class A():
     def __init__(self):
+
         self.foo = 2
+        self.u = 'unk'
+        self.k = 3
+
 if __name__ == '__main__':
 
     a = A()
     parser = argparse.ArgumentParser(description='Biaffine Parser')
 
-    parser.add_argument('--word2vec_file', 
+    parser.add_argument('--word2vec_file', default='', 
                         help='the path to pretrained embeddings file') 
     parser.add_argument('-u', default=None,
                         help='what is the unknown word in pretrained embeddings') 
-    parser.add_argument('--foo', dest='bar')
+    parser.add_argument('--foo', default=6)
 
-    args = parser.parse_args()
-    print(args.foo)
-    # parser.parse_args(namespace=a)
-    # print(a.foo)
-    # print(vars(a))
+    # args = parser.parse_args()
+    # print(args.foo)
+    parser.parse_args(namespace=a)
+    print(a.foo)
+    print(vars(a))
     
 
     
