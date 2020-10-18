@@ -53,6 +53,7 @@ if __name__ == '__main__':
     char_vocab = read_vocab(args.char_vocab_file)
     args.n_chars = len(char_vocab)
     # create tag vocab 
+    # TODO should we add <UNK> to vocab ? since no <UNK> would 
     create_vocab(train_sentences, args.tag_vocab_file, special_labels, 'tag', min_freq=1)
     tag_vocab = read_vocab(args.tag_vocab_file)
     args.n_tags = len(tag_vocab)
