@@ -122,18 +122,22 @@ class A():
 
 if __name__ == '__main__':
 
-    parser = argparse.ArgumentParser(description='parent parser')
+    # parser = argparse.ArgumentParser(description='parent parser')
 
-    parser.add_argument('foo')
+    # parser.add_argument('foo')
 
-    # subpasers = parser.add_subparsers(help='sub-parser help')
+    # # subpasers = parser.add_subparsers(help='sub-parser help')
 
-    # parser_a = subpasers.add_parser('a', help='aaaaaa')
-    # parser_a.add_argument('abar')
+    # # parser_a = subpasers.add_parser('a', help='aaaaaa')
+    # # parser_a.add_argument('abar')
 
-    args = parser.parse_args()
+    # args = parser.parse_args()
 
-    print(args.foo)
+    # print(args.foo)
 
+    d = {'1':1, '4':2, '3':3}
+    print(d)
+    for k in d:
+        print(k)
     
     

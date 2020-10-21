@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 
 class Corpus(object):
     ''' Defines a general datatype.
@@ -70,7 +71,7 @@ class ConllSentence(Sentence):
     def __init__(self, fields, values):
         for name, value in zip(fields, values):
             setattr(self, name, value)
-        self.fields = fieldspy
+        self.fields = fields
         self.length = len(getattr(self, fields[0]))
 
     def __len__(self):

@@ -2,10 +2,11 @@ import sys
 import os
 
 from models.tagger_model import Tagger_Model
-from utils.metric import Metric
-from utils.algorithms import crf, viterbi
 from utils.field import Field
-from 
+from utils.common import pad_token, unk_token, bos_token, eos_token
+from utils.algorithms import crf, viterbi
+from utils.functions import preprocessing_heads
+from utils.metric import Metric
 
 import torch
 import torch.nn as nn
@@ -151,7 +152,14 @@ class Tagger(object):
         
         if not os.path.exists(args.fields):
             print('Create fields for Tagger !')
-            Field(pad_token=)
+            WORD = Field(pad_token=pad_token, unk_token=unk_token, bos_token=bos_token, 
+                         eos_token=eos_token, lower=True)
+            # TODO char-bilstm, use eos_token
+            FEAT = Field(pad_token=pad_token, unk_token=unk_token, bos_token=bos_token,
+                         fix_len=args.fix_len, tokenize=list)
+            # TODO need bos_token ?
+            LABEL = Field(bos_token=bos_token, eos_token=eos_token)
+
 
 
 
