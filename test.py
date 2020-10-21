@@ -122,21 +122,18 @@ class A():
 
 if __name__ == '__main__':
 
-    a = A()
-    parser = argparse.ArgumentParser(description='Biaffine Parser')
+    parser = argparse.ArgumentParser(description='parent parser')
 
-    parser.add_argument('--word2vec_file', default='', 
-                        help='the path to pretrained embeddings file') 
-    parser.add_argument('-u', default=None,
-                        help='what is the unknown word in pretrained embeddings') 
-    parser.add_argument('--foo', default=6)
+    parser.add_argument('foo')
 
-    # args = parser.parse_args()
-    # print(args.foo)
-    parser.parse_args(namespace=a)
-    print(a.foo)
-    print(vars(a))
-    
+    # subpasers = parser.add_subparsers(help='sub-parser help')
+
+    # parser_a = subpasers.add_parser('a', help='aaaaaa')
+    # parser_a.add_argument('abar')
+
+    args = parser.parse_args()
+
+    print(args.foo)
 
     
     

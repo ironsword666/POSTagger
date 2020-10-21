@@ -2,9 +2,9 @@ import torch
 import torch.nn as nn
 from torch.nn.utils.rnn import pad_sequence, pack_padded_sequence, pad_packed_sequence
 
-from mytagger.char_lstm import CharLSTM
+from modules.char_lstm import CharLSTM
 
-class Model(nn.Module):
+class Tagger_Model(nn.Module):
     '''
     Model(
     (word_embedding): Embedding(23144, 100)
@@ -24,7 +24,7 @@ class Model(nn.Module):
                 n_lstm_layer=1, 
                 pad_index=0, 
                 unk_index=1):
-        super(Model, self).__init__()
+        super(Tagger_Model, self).__init__()
 
         self.pad_index = pad_index
         self.unk_index = unk_index

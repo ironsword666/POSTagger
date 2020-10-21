@@ -1,9 +1,7 @@
 import os
 import sys
 from collections import Counter
-
-import torch
-
+  
 def read_file(filename):
     '''read a conllx file and return sentences.
     
@@ -63,7 +61,7 @@ def create_vocab(sentences, vocab_file, special_labels, field, min_freq=2):
     # count words frequency
     counter = Counter(tokens) # counter: {word:count,...} ,
     pairs = [] # pairs: [(word, count), ...]
-    # drop out words whose frequency is less than 'min_freq'
+    # drop out words whose frequency is less than 'min_freq' 
     for token, count in counter.items():
         if count >= min_freq:
             pairs.append((token, count))

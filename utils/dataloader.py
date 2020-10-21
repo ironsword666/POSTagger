@@ -7,36 +7,51 @@ from torch.utils.data import Dataset, DataLoader, Sampler
 from torch.nn.utils.rnn import pad_sequence
 
 class TextDataSet(Dataset):
-    '''a TextDateset'''
+    ''' TextDateset '''
 
-    def __init__(self, args, sentences, word_vocab, char_vocab, rel_vocab):
-        '''deal with the dataset'''
+    def __init__(self, examples, fields):
+        ''' deal with the dataset.
+        
+        Params:
+            examples (Corpus)
+            fields (list[tuple(str1, Field, str2)]): TODO modify fields
+                str1 is the name of Field, str2 is the field in Corpus
+        '''
 
         super(TextDataSet, self).__init__()
-        # from texts to numbers
-        self.data = numericalize(args, sentences, word_vocab, char_vocab, rel_vocab)
+        self.examples = examples
+        self.fields = fields
 
-    def __getitem__(self, index):
-        '''return a piece of data based on the index'''
-
-        return self.data[index]
+    def __getitem__(self, idx):
+        example = self.examples[idx]
+        for _, _, name in self.fields:
+            yield getattr(example, name)
 
     def __len__(self):
-        '''the length of Dateset'''
+        return len(self.examples)
 
-        return len(self.data)
+    def collect_fn(self, batch):
+       fields = [f[1] for f in self.fields]
+       return {f: d for f, d in zip(fields, *batch)}
 
 class TextDataLoader(DataLoader):
     '''加载TextDataset中的数据'''
 
-    def __init__(self, batch_size, shuffle=False):
-        pass
+    def __init__(self, *args, **kwargs):
+        self.fields = self.dataset.fields
+
+        super().__init__(*args, **kwargs)
+
+    def __iter__(self):
+        # batch (dict{field:sub_batch})
+        for batch in super().__iter__():
+            yield [f.process(d) for f, d in batch.items()]
 
 
 class TextBatchSampler(Sampler):
     '''批量采样数据'''
 
-    def __init__(self, batch_size, shuffle=False):
+    def __init__(self):
         pass
 
 
@@ -85,48 +100,7 @@ def collate_fn(data):
     return words, chars, tags
 
 
-def numericalize(args, sentences, word_vocab, char_vocab, tag_vocab):
-    '''transform a string sequence to a number sequnece.
 
-    For example, (In, an, Oct., ...) -> [5, 108, 3999, ...].
-    We should alse add 'bos' tag to begin of a sentence. 
-
-    conllx format:
-    1    ID      当前词在句子中的序号，１开始.
-    2    FORM    当前词语或标点
-    3    LEMMA   当前词语（或标点）的原型或词干，在中文中，此列与FORM相同
-    4    CPOSTAG 当前词语的词性（粗粒度）
-    5    POSTAG  当前词语的词性（细粒度）
-    6    FEATS   句法特征，在本次评测中，此列未被使用，全部以下划线代替。
-    7    HEAD    当前词语的中心词
-    8    DEPREL  当前词语与中心词的依存关系
-    '''
-
-    data = []
-    # to id
-    word_to_id = {word:i for i, word in enumerate(word_vocab)}
-    char_to_id = {char:i for i, char in enumerate(char_vocab)}
-    tag_to_id = {rel:i for i, rel in enumerate(tag_vocab)}
-    # add bos and numericalize
-    for sentence in sentences:
-        # words: Tensor(sentence_len)
-        words = [word_to_id.get(word, args.unk_index) for word in [args.bos] + sentence[1] + [args.eos]]
-        words = torch.tensor(words)
-        # chars: Tensor(sentence_len, fix_len)
-        # as to <bos> and <eos> in a sentence, 'chars' of it is still <bos> and <eos> which is in char vocab 
-        chars = [[args.bos_index]] + [[char_to_id.get(char, args.unk_index) for char in word] for word in sentence[1]] + [[args.eos_index]]
-        # truncate if longer than fix_len, or pad if shorter than fix_len
-        chars = [word[:args.fix_len] + [args.pad_index] * (args.fix_len - len(word)) for word in chars]
-        # !!! here, we treat a word as a whole, so don't seperate chars of a word 
-        chars = torch.tensor(chars)
-        # tags: Tensor(sentence_len)
-        tags = [tag_to_id.get(rel, args.unk_index) for rel in [args.bos] + sentence[3] + [args.eos]]
-        tags = torch.tensor(tags)
-
-        data.append((words, chars, tags))
-
-    return data
-    
 
 
 
