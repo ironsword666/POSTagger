@@ -5,6 +5,7 @@ from vocab import Vocab
 from dataloader import TextDataSet
 
 import torch
+from torch.nn.utils.rnn import pad_sequence
 
 
 class RawField(object):
@@ -101,28 +102,28 @@ class Field(RawField):
         ''' Process a list of examples to create a torch.Tensor. '''
 
         # TODO numericalize before dataloader or before dataset?
-        batch = self.numericalize(batch)
-        padded = self.pad(batch)
+        tensors = self.numericalize(batch)
+        padded = self.pad(tensors)
 
         return padded
 
-    def build_vocab(self, dataset, min_freq=1, specials=[], embed=None):
+    def build_vocab(self, examples, min_freq=1, specials=[], embed=None):
         ''' Construct the Vocab for this field from the dataset.
 
         Params:
-            dataset: Represent the set of possible values for this field.
+            examples: Represent the set of possible values for this field.
             specials (list[str]): The list of special tokens.
         
         '''
         if not self.use_vocab:
             raise Exception('no need to build vocab !')
 
-        # TODO add `name` attribute to Field
-        if isinstance(dataset, TextDataSet):
-            examples = [getattr(dataset, name) for name, field in 
-                        dataset.fields.items() if field is self]
-        else:
-            examples = dataset
+        # # TODO add `name` attribute to Field
+        # if isinstance(dataset, TextDataSet):
+        #     examples = [getattr(dataset, name) for name, field in 
+        #                 dataset.fields.items() if field is self]
+        # else:
+        #     examples = dataset
         counter = Counter(token for example in examples for token in self.preprocess(example))
 
         # use OrderedDict to keep tokens ordered and unique
@@ -133,43 +134,83 @@ class Field(RawField):
 
         self.vocab = Vocab(counter, min_freq, specials)
 
-        # TODO embed
+        if embed is None:
+            self.embed = None
+        else:
+            self.vocab.extend(embed.vocab)
+            self.embed = torch.zeros(len(self.vocab), embed.dim)
+            self.embed[self.vocab.token2id(embed.vocab.itos)] = embed.vectors
+
 
     def numericalize(self, batch):
         ''' numericalize a list of examples to create a torch.Tensor.
 
         Params: 
             batch (list[str]): List of examples not tokenized and padded. 
+        
+        Returns:
+            tensors (list[Tensor]): List of tensors, a tensor corresponding to a example numericalized. 
         '''
+
         batch = [self.preprocess(example) for example in batch]
+
         if self.bos_token:
             batch = [[self.bos_token] + example for example in batch]
         if self.eos_token:
             batch = [example + [self.eos_token] for example in batch]
         if self.use_vocab:
             batch = [self.vocab.token2id(example) for example in batch]
-        batch = [torch.tensor(example) for example in batch]
 
-        return batch
+        tensors = [torch.tensor(example) for example in batch]
 
-    def pad(self, batch):
-        # TODO pad
+        return tensors
+
+    def pad(self, tensors):
+        '''  
+        Params:
+            tensors (list[Tensor]): List of tensors to be padded.
+
+        Returns:
+            padded: (Tensor): tensors padded. 
+        '''
         
-        return batch
+        # TODO keep sorted
+        return pad_sequence(tensors, batch_first=True).to(self.device)
+    
+    @property
+    def device(self):
+        return 'cuda' if torch.cuda.is_available() else 'cpu'
+
+    # TODO check self.vocab exists
+    @property
+    def pad_index(self):
+        return self.vocab[self.pad_token] if self.pad_token is not None else None
+
+    @property
+    def unk_index(self):
+        return self.vocab[self.unk_token] if self.unk_token is not None else None
+
+    @property
+    def bos_index(self):
+        return self.vocab[self.bos_token] if self.bos_token is not None else None
+    
+    @property
+    def eos_index(self):
+        return self.vocab[self.eos_token] if self.eos_token is not None else None
 
 class SubWordField(Field):
 
     def __init__(self, **kwargs):
         super(SubWordField, self).__init__(**kwargs)
 
-    def build_vocab(self, dataset, min_freq=1, specials=[], embed=None):
+    def build_vocab(self, examples, min_freq=1, specials=[], embed=None):
 
         # TODO add `name` attribute to Field
-        if isinstance(dataset, TextDataSet):
-            examples = [getattr(dataset, name) for name, field in 
-                        dataset.fields.items() if field is self]
-        else:
-            examples = dataset
+        # if isinstance(dataset, TextDataSet):
+        #     examples = [getattr(dataset, name) for name, field in 
+        #                 dataset.fields.items() if field is self]
+        # else:
+        #     examples = dataset
 
         counter = Counter(char for example in examples 
                           for token in example 
@@ -183,7 +224,13 @@ class SubWordField(Field):
 
         self.vocab = Vocab(counter, min_freq, specials)
 
-        # TODO embed
+        if embed is None:
+            self.embed = None
+        else:
+            self.vocab.extend(embed.vocab)
+            self.embed = torch.zeros(len(self.vocab), embed.dim)
+            self.embed[self.vocab.token2id(embed.vocab.itos)] = embed.vectors
+
 
     def numericalize(self, batch):
 

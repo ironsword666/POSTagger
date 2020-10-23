@@ -33,10 +33,10 @@ if __name__ == '__main__':
                         help='path to dev file')
     parser.add_argument('--ftest', default=None,
                         help='path to test file')
-    parser.add_argument('--word2vec_file', default=None,
+    parser.add_argument('--w2v', default=None,
                         help='where to load pretrained embeddings')  
     parser.add_argument('--unk', default=None,
-                        help='what is the label of unknown word in word2vec_file') 
+                        help='what is the label of unknown word in w2v') 
     parser.add_argument('--use_crf', action='store_true',
                         help='whether use crf to calculate loss') 
     parser.add_argument('--save_dir', default=None,
@@ -46,17 +46,17 @@ if __name__ == '__main__':
     parser.parse_args(namespace=args)
 
     # random seed
+    random.seed(args.seed)
     torch.manual_seed(args.seed)
     # TODO whether needed ?
     torch.cuda.manual_seed(args.seed)
-    random.seed(args.seed)
 
     # cuda
     os.environ['CUDA_VISIBLE_DEVICES'] = args.device
-    args.device =  'cuda' if torch.cuda.is_available() else 'cpu'
+    args.device = 'cuda' if torch.cuda.is_available() else 'cpu'
 
     tagger = Tagger.build_tagger(args)
-    tagger.train(args)
+    tagger.train(tagger.args)
     
 
 

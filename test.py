@@ -135,9 +135,3 @@ if __name__ == '__main__':
 
     # print(args.foo)
 
-    d = {'1':1, '4':2, '3':3}
-    print(d)
-    for k in d:
-        print(k)
-    
-    

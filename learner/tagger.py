@@ -1,8 +1,11 @@
 import sys
 import os
 
+
 from models.tagger_model import Tagger_Model
-from utils.field import Field
+from utils.field import Field, SubWordField
+from utils.corpus import Conll, Embedding
+from utils.dataloader import TextDataSet
 from utils.common import pad_token, unk_token, bos_token, eos_token
 from utils.algorithms import crf, viterbi
 from utils.functions import preprocessing_heads
@@ -15,91 +18,88 @@ from torch.optim.lr_scheduler import ExponentialLR
 
 class Tagger(object):
 
-    def __init__(self):
+    def __init__(self, args, tri_fields, model):
 
-        pass
+        self.args = args
+        self.true_fields = {k: value[0] for k, value in tri_fields.items()}
+        self.alias_fields = {value[1]: value[0] for value in tri_fields.values()}
+        self.tagger_model = model
 
     def train(self, args):
         '''
         
         Params:
-            - train_data_loader: 
+            : 
         
         '''
 
-        # pos model
-        model = Tagger_Model(n_words=args.n_words,
-                             n_chars=args.n_chars,
-                             n_tags=args.n_tags,
-                             n_embed=args.n_embed,
-                             n_char_embed=args.n_char_embed,
-                             n_feat_embed=args.n_feat_embed,
-                             n_lstm_hidden=args.n_lstm_hidden,
-                             n_lstm_layer=args.n_lstm_layer,
-                             pad_index=args.pad_index,
-                             unk_index=args.unk_index)  
-
-        # load pretrained embeddings                
-        model.load_pretrained(pretrained_embedding)
-        print('The network structure of POS Tagger is:\n', model)
-
-        # TODO select correct Loss function
-        criterion = nn.CrossEntropyLoss() 
+        # build dataset
+        train = TextDataSet(Conll.load(args.ftrain), self.alias_fields)
+        train.build_loader(batch_size=args.batch_size, shuffle=True)
+        dev = TextDataSet(Conll.load(args.fdev), self.alias_fields)
+        dev.build_loader(batch_size=args.batch_size)
+        test = TextDataSet(Conll.load(args.ftest), self.alias_fields)
+        test.build_loader(batch_size=args.batch_size)
+        
+        self.criterion = nn.CrossEntropyLoss(reduction='mean') 
         # Adam Optimizer
-        optimizer = Adam(model.parameters(), args.learning_rate) 
+        self.optimizer = Adam(self.tagger_model.parameters(), args.lr) 
         # learning rate decrease
         # new_lr = initial_lr * gamma**epoch = initial_lr * 0.75**(epoch/5000)
-        scheduler = ExponentialLR(optimizer, args.decay**(1/args.decay_steps)) 
+        self.scheduler = ExponentialLR(self.optimizer, args.decay**(1/args.decay_steps)) 
 
-        best_epoch, best_accuracy = 0, 0
+        best_epoch, metric = 0, Metric()
         for epoch in range(1, args.epochs+1):
             print('training epoch {} :'.format(epoch))
-            # training mode，dropout is useful
-            model.train() 
-            total_loss = 0 
-            for words, chars, tags in train_data_loader:
+            loss, metric = self.train_epoch(args, train.data_loader)
+            print('total_loss: {}'.format(loss))
+            # TODO dev
+            accuracy = self.evaluate(args, dev.data_loader)
+            # if accuracy > best_accuracy:
+                # best_epoch = epoch
 
-                optimizer.zero_grad()
-                # mask <bos> <eos > and <pad>
-                mask = words.ne(args.pad_index) & words.ne(args.bos_index) & words.ne(args.eos_index)
-                # compute score
-                scores = model(words, chars) 
-                if not args.use_crf:
-                    criterion = nn.CrossEntropyLoss() 
-                    loss = get_loss(criterion, scores, tags, mask, use_crf=False, transition=None)
-                else:
-                    # TODO is criterion right?
-                    criterion = nn.NLLLoss()
-                    loss = get_loss(criterion, scores, tags, mask, use_crf=True, transition=model.transition)
-                # compute grad
-                loss.backward() 
-                # clip grad which is larger than args.clip
-                nn.utils.clip_grad_norm_(model.parameters(), args.clip)
-                # backpropagation
-                optimizer.step()
-                # updat learning rate
-                scheduler.step()
-                total_loss += loss.item()
-                break
-            print('total_loss: {}'.format(total_loss))
+            # if epoch - best_epoch > args.patience:
+                # break
+    
+    def train_epoch(self, args, data_loader):
 
-            accuracy = evaluate(args, model, dev_data_loader)
-            print('Accuracy: {}'.format(accuracy))
-            if accuracy > best_accuracy:
-                best_epoch = epoch
+        self.tagger_model.train() 
+        total_loss = 0 
 
-            if epoch - best_epoch > args.patience:
-                break
+        for words, feats, tags in data_loader:
 
-    def evaluate(self, args, model, data_loader):
+            self.optimizer.zero_grad()
+            # mask <bos> <eos > and <pad>
+            mask = words.ne(self.true_fields['WORD'].pad_index) & words.ne(self.true_fields['WORD'].bos_index) & words.ne(self.true_fields['WORD'].eos_index)
+            # compute score
+            scores = self.tagger_model(words, feats) 
+            if not args.use_crf:
+                loss = self.get_loss(self.criterion, scores, tags, mask, use_crf=False, transition=None)
+            else:
+                loss = self.get_loss(None, scores, tags, mask, use_crf=True, transition=self.tagger_model.transition)
+            # compute grad
+            loss.backward() 
+            # clip grad which is larger than args.clip
+            nn.utils.clip_grad_norm_(self.tagger_model.parameters(), args.clip)
+            # backpropagation
+            self.optimizer.step()
+            # updat learning rate
+            self.scheduler.step()
+            total_loss += loss.item()
+
+        # TODO metric    
+        
+        return total_loss / len(data_loader), 0
+
+    def evaluate(self, args, data_loader):
         ''''''
         
-        model.eval()
+        self.tagger_model.eval()
         n_total, n_right = 0, 0 # 所有文本，分类对了的文本
-        for words, chars, tags in data_loader:
+        for words, feats, tags in data_loader:
 
-            mask = words.ne(args.pad_index) & words.ne(args.bos_index) & words.ne(args.eos_index)
-            scores = model(words, chars) 
+            mask = words.ne(self.true_fields['WORD'].pad_index) & words.ne(self.true_fields['WORD'].bos_index) & words.ne(self.true_fields['WORD'].eos_index)
+            scores = self.tagger_model(words, feats) 
             out = torch.argmax(scores, dim=-1)
             equal = torch.eq(out[mask], tags[mask])
             n_right += torch.sum(equal).item()
@@ -147,18 +147,70 @@ class Tagger(object):
         # directory to save model and fields
         if not os.path.isdir(args.save_dir):
             os.makedirs(args.save_dir)
-        args.fields = os.path.join(args.save_dir, 'tagger_fields')
-        args.model = os.path.join(args.save_dir, 'tagger_model')
-        
-        if not os.path.exists(args.fields):
+        args.tagger_fields = os.path.join(args.save_dir, 'tagger_fields')
+        args.tagger_model = os.path.join(args.save_dir, 'tagger_model')
+        # TODO merge fields and model in a torch.save
+        # build tagger fields
+        if not os.path.exists(args.tagger_fields):
             print('Create fields for Tagger !')
             WORD = Field(pad_token=pad_token, unk_token=unk_token, bos_token=bos_token, 
                          eos_token=eos_token, lower=True)
             # TODO char-bilstm, use eos_token
-            FEAT = Field(pad_token=pad_token, unk_token=unk_token, bos_token=bos_token,
-                         fix_len=args.fix_len, tokenize=list)
-            # TODO need bos_token ?
-            LABEL = Field(bos_token=bos_token, eos_token=eos_token)
+            FEAT = SubWordField(pad_token=pad_token, unk_token=unk_token, bos_token=bos_token,
+                                fix_len=args.fix_len, tokenize=list)
+            # TODO need bos_token and eos_token?
+            POS = Field(bos_token=bos_token, eos_token=eos_token)
+            conll = Conll.load(args.ftrain)
+
+            tri_fields = {
+                'WORD': (WORD, Conll.field_names[1]),
+                'FEAT': (FEAT, Conll.field_names[1]),
+                'POS': (POS, Conll.field_names[3])
+            }
+            
+            # field.build_vocab(getattr(conll, name), (Embedding.load(args.w2v, args.unk) if args.w2v else None))
+            WORD.build_vocab(examples=getattr(conll, tri_fields['WORD'][1]), 
+                             min_freq=args.min_freq, 
+                             embed=(Embedding.load(args.w2v) if args.w2v else None))
+            FEAT.build_vocab(examples=getattr(conll, tri_fields['FEAT'][1]))
+            POS.build_vocab(examples=getattr(conll, tri_fields['POS'][1]))
+        # TODO load fields
+        else:
+            pass
+        # build tagger model
+        # TODO
+        tagger_model = Tagger_Model(n_words=WORD.vocab.n_init,
+                                    n_chars=FEAT.vocab.n_init,
+                                    n_tags=POS.vocab.n_init,
+                                    n_embed=args.n_embed,
+                                    n_char_embed=args.n_char_embed,
+                                    n_feat_embed=args.n_feat_embed,
+                                    n_lstm_hidden=args.n_lstm_hidden,
+                                    n_lstm_layer=args.n_lstm_layer,
+                                    pad_index=WORD.pad_index,
+                                    unk_index=WORD.unk_index)
+
+        if os.path.exists(args.tagger_model):
+            state = torch.load(args.tagger_model, map_location=args.device)
+            tagger_model.load_pretrained(state['pretrained'])
+            tagger_model.load_state_dict(state['state_dict'], False)
+        
+        tagger_model.to(args.device)
+        
+        print('The network structure of POS Tagger is:\n', tagger_model)
+
+        
+        return cls(args, tri_fields, tagger_model)
+
+
+        
+
+
+                
+            
+
+            
+            
 
 
 

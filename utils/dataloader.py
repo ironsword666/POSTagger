@@ -1,5 +1,5 @@
 import os
-from collections import Counter
+from collections import Counter, OrderedDict
 
 import numpy as np
 import torch
@@ -9,30 +9,38 @@ from torch.nn.utils.rnn import pad_sequence
 class TextDataSet(Dataset):
     ''' TextDateset '''
 
-    def __init__(self, examples, fields):
+    def __init__(self, examples, alias_fields):
         ''' deal with the dataset.
         
         Params:
             examples (Corpus)
-            fields (list[tuple(str1, Field, str2)]): TODO modify fields
-                str1 is the name of Field, str2 is the field in Corpus
+            alias_fields (dict{alias_name: Fields}): alias name is corresponding name in Corpus
         '''
 
         super(TextDataSet, self).__init__()
         self.examples = examples
-        self.fields = fields
+        self.fields = alias_fields
 
     def __getitem__(self, idx):
         example = self.examples[idx]
-        for _, _, name in self.fields:
+        for name in self.fields.keys():
             yield getattr(example, name)
 
     def __len__(self):
         return len(self.examples)
 
     def collect_fn(self, batch):
-       fields = [f[1] for f in self.fields]
-       return {f: d for f, d in zip(fields, *batch)}
+        ''' use f.process to numeriliaze and pad batch '''
+        fields = [f for f in self.fields.values()]
+        return {f: d for f, d in zip(fields, *batch)}
+
+    def build_loader(self, batch_size, shuffle=True):
+
+        self.data_loader = TextDataLoader(dataset=self,
+                                     batch_size=batch_size,
+                                     shuffle=shuffle,
+                                     collate_fn=self.collect_fn)
+
 
 class TextDataLoader(DataLoader):
     '''加载TextDataset中的数据'''

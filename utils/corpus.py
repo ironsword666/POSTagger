@@ -1,5 +1,12 @@
 # -*- coding: utf-8 -*-
 
+from collections import Counter
+from vocab import Vocab
+
+import torch
+
+
+
 class Corpus(object):
     ''' Defines a general datatype.
 
@@ -25,8 +32,20 @@ class Sentence(object):
 
 
 class Conll(Corpus):
+    '''
 
-    fields = ['ID', 'FORM', 'LEMMA', 'CPOSTAG', 'POSTAG', 'FEATS', 'HEAD', 'DEPREL', 'PHEAD', 'PDEPREL']
+    A conllx file has 10 fields:
+    1    ID      当前词在句子中的序号，１开始.
+    2    FORM    当前词语或标点
+    3    LEMMA   当前词语（或标点）的原型或词干，在中文中，此列与FORM相同
+    4    CPOSTAG 当前词语的词性（粗粒度）
+    5    POSTAG  当前词语的词性（细粒度）
+    6    FEATS   句法特征，在本次评测中，此列未被使用，全部以下划线代替。
+    7    HEAD    当前词语的中心词
+    8    DEPREL  当前词语与中心词的依存关系
+    '''
+
+    field_names = ['ID', 'FORM', 'LEMMA', 'CPOSTAG', 'POSTAG', 'FEATS', 'HEAD', 'DEPREL', 'PHEAD', 'PDEPREL']
 
     def __init__(self, sentences):
         self.sentences = sentences
@@ -58,7 +77,7 @@ class Conll(Corpus):
                 sentence = [line.split('\t') for line in lines[start:i]]
                 # [(1, 2, 3, ...), (In, an, Oct, ...), ...]
                 values = list(zip(*sentence))
-                sentences.append(ConllSentence(Conll.fields, values))
+                sentences.append(ConllSentence(Conll.field_names, values))
                 start = i + 1
         
         return cls(sentences)
@@ -68,11 +87,11 @@ class Conll(Corpus):
 
 class ConllSentence(Sentence):
 
-    def __init__(self, fields, values):
-        for name, value in zip(fields, values):
+    def __init__(self, field_names, values):
+        for name, value in zip(field_names, values):
             setattr(self, name, value)
-        self.fields = fields
-        self.length = len(getattr(self, fields[0]))
+        self.field_names = field_names
+        self.length = len(getattr(self, field_names[0]))
 
     def __len__(self):
         return self.length
@@ -85,11 +104,24 @@ class ConllSentence(Sentence):
 # TODO
 class Embedding(Corpus):
 
-    def __init__(self):
+    def __init__(self, words, embeddings):
 
-        pass
+        self.vocab = Vocab(Counter(words))
+        self.vectors = torch.tensor(embeddings)
+        self.dim = self.vectors.size(-1)
 
     @classmethod
     def load(cls, path):
 
-        pass
+        words, embeddings = [], []
+        # read pretrained embeddings
+        with open(path, 'r', encoding='utf-8') as fr:
+            for line in fr:
+                row = line.strip().split(' ')  
+                # the first line may contain the information of the file, ignore it  
+                if len(row) < 2: 
+                    continue
+                words.append(row[0])
+                embeddings.append([float(i) for i in row[1:]])
+        
+        return cls(words, embeddings)

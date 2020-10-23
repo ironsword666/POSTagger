@@ -19,19 +19,22 @@ class Vocab(object):
 
         self.itos = specials
 
-        # frequencies of special tokens are not counted when building vocabulary
-        # in frequency order
+        # frequencies of special tokens are not counted 
         for tok in specials:
             del counter[tok]
         
         self.itos.extend([tok for tok, freq in counter.items() 
                           if freq >= min_freq])
         
+        # record how many tokens are in Vocab initially
+        self.n_init = len(self.itos)
+        
         if Vocab.UNK in specials:
             self.unk_index = specials.index(Vocab.UNK)
             self.stoi = defaultdict(self._default_unk_index)
-        else:
-            raise Exception('unk token doesn\'t match !')
+        # TODO if Vocab.UNK not in specials
+        # else:
+        #     raise Exception('unk token doesn\'t match !')
 
         self.stoi.update({tok: idx for idx, tok in enumerate(self.itos)})
 

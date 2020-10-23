@@ -18,7 +18,7 @@ class Config(object):
     
 
     # [优化系数]
-    learning_rate = 2e-3        # 学习率
+    lr = 2e-3        # 学习率
     # l2_reg_lambda = 0.01        # 正则化系数
     mu = 0.9
     nu = 0.9
@@ -29,8 +29,8 @@ class Config(object):
 
     # [训练设置]
     batch_size = 50             # 每批训练的大小
-    epochs = 30            # 总迭代轮次
-    patience = 5           # dev上多少次不提升则停止训练
+    epochs = 50            # 总迭代轮次
+    patience = 10           # dev上多少次不提升则停止训练
 
     # # [数据]
     # base_dir = './data/ptb/'                   # 数据文件所在的目录
