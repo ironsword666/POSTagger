@@ -2,7 +2,7 @@ import torch
 import torch.nn as nn
 from torch.nn.utils.rnn import pad_sequence, pack_padded_sequence, pad_packed_sequence
 
-from modules.char_lstm import CharLSTM
+from src.modules.char_lstm import CharLSTM
 
 class Tagger_Model(nn.Module):
     '''
@@ -87,7 +87,7 @@ class Tagger_Model(nn.Module):
 
         # BiLSTM Layer
 
-        x = pack_padded_sequence(embed, lens, batch_first=True)
+        x = pack_padded_sequence(embed, lens, batch_first=True, enforce_sorted=False)
         x, _ = self.bilstm(x)
         # (batch, seq_len, n_lstm_hidden*2)
         x, _ = pad_packed_sequence(x, batch_first=True)

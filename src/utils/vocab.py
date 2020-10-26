@@ -1,7 +1,7 @@
 from collections import defaultdict, Counter
 from collections.abc import Iterable
 
-from common import unk_token
+from src.utils.common import unk_token
 
 class Vocab(object):
     ''' Defines a vocabulary object that will be used to numericalize a field.
@@ -33,8 +33,9 @@ class Vocab(object):
             self.unk_index = specials.index(Vocab.UNK)
             self.stoi = defaultdict(self._default_unk_index)
         # TODO if Vocab.UNK not in specials
-        # else:
-        #     raise Exception('unk token doesn\'t match !')
+        else:
+            # raise Exception('unk token doesn\'t match !')
+            self.stoi =defaultdict()
 
         self.stoi.update({tok: idx for idx, tok in enumerate(self.itos)})
 

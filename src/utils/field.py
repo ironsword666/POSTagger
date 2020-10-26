@@ -1,8 +1,7 @@
 from collections import Counter, OrderedDict
 
-from copus import Copus
-from vocab import Vocab
-from dataloader import TextDataSet
+from src.utils.vocab import Vocab
+from src.utils.dataloader import TextDataSet
 
 import torch
 from torch.nn.utils.rnn import pad_sequence
@@ -104,7 +103,7 @@ class Field(RawField):
         # TODO numericalize before dataloader or before dataset?
         tensors = self.numericalize(batch)
         padded = self.pad(tensors)
-
+        
         return padded
 
     def build_vocab(self, examples, min_freq=1, specials=[], embed=None):
@@ -146,19 +145,20 @@ class Field(RawField):
         ''' numericalize a list of examples to create a torch.Tensor.
 
         Params: 
-            batch (list[str]): List of examples not tokenized and padded. 
+            batch (list[tuple(str)]): List of examples not tokenized and padded. 
         
         Returns:
             tensors (list[Tensor]): List of tensors, a tensor corresponding to a example numericalized. 
         '''
 
         batch = [self.preprocess(example) for example in batch]
-
+        # print(batch[0])
+        # TODO example is a tuple
         if self.bos_token:
             batch = [[self.bos_token] + example for example in batch]
         if self.eos_token:
             batch = [example + [self.eos_token] for example in batch]
-        if self.use_vocab:
+        if self.use_vocab: 
             batch = [self.vocab.token2id(example) for example in batch]
 
         tensors = [torch.tensor(example) for example in batch]

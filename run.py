@@ -3,19 +3,9 @@ import random
 import argparse
 
 from config import Config
-from learner.tagger import Tagger 
+from src.learner.tagger import Tagger 
 
 import torch
-
-
-
-'''
-How to execute run.py?
-使用crf
-python run.py --word2vec_file=./data/embedding/glove.6B.100d.txt --unk=unk --use_crf
-不使用crf
-python run.py --word2vec_file=./data/embedding/glove.6B.100d.txt --unk=unk 
-'''
 
 if __name__ == '__main__':
 
@@ -53,8 +43,9 @@ if __name__ == '__main__':
 
     # cuda
     os.environ['CUDA_VISIBLE_DEVICES'] = args.device
+    print(os.environ['CUDA_VISIBLE_DEVICES'])
     args.device = 'cuda' if torch.cuda.is_available() else 'cpu'
-
+    print(args.device)
     tagger = Tagger.build_tagger(args)
     tagger.train(tagger.args)
     

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from collections import Counter
-from vocab import Vocab
+from src.utils.vocab import Vocab
 
 import torch
 
@@ -75,8 +75,8 @@ class Conll(Corpus):
             if not line: 
                 # [[id, form, ...], [id, form, ...], ...]
                 sentence = [line.split('\t') for line in lines[start:i]]
-                # [(1, 2, 3, ...), (In, an, Oct, ...), ...]
-                values = list(zip(*sentence))
+                # [[1, 2, 3, ...], [In, an, Oct, ...], ...]
+                values = [list(f) for f in zip(*sentence)]
                 sentences.append(ConllSentence(Conll.field_names, values))
                 start = i + 1
         

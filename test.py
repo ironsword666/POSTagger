@@ -1,6 +1,7 @@
 
 from collections import Counter
 import os
+import sys
 import random
 import argparse
 
@@ -109,7 +110,7 @@ import torch.nn.functional as F
 # # # rs = input1[mask]
 # # # print(rs)
 # # # print(input1.masked_select(mask.unsqueeze(-1)))
-# l = [5,6,7,8]
+# l = [5,6,7,
 # a = torch.arange(4)
 # for i in a:
 #     print(l[i])
@@ -134,4 +135,16 @@ if __name__ == '__main__':
     # args = parser.parse_args()
 
     # print(args.foo)
+    def f():
+
+        for i in range(5):
+            yield i
+
+    l = f()
+    for i in l:
+        print(i)
+
+    m = [f(), f()]
+    for i, j in zip(range(2), zip(*m)):
+        print(i, j)
 

@@ -2,14 +2,14 @@ import sys
 import os
 
 
-from models.tagger_model import Tagger_Model
-from utils.field import Field, SubWordField
-from utils.corpus import Conll, Embedding
-from utils.dataloader import TextDataSet
-from utils.common import pad_token, unk_token, bos_token, eos_token
-from utils.algorithms import crf, viterbi
-from utils.functions import preprocessing_heads
-from utils.metric import Metric
+from src.models.tagger_model import Tagger_Model
+from src.utils.field import Field, SubWordField
+from src.utils.corpus import Conll, Embedding
+from src.utils.dataloader import TextDataSet
+from src.utils.common import pad_token, unk_token, bos_token, eos_token
+from src.utils.algorithms import crf, viterbi
+from src.utils.functions import preprocessing_heads
+from src.utils.metric import Metric
 
 import torch
 import torch.nn as nn
@@ -22,7 +22,8 @@ class Tagger(object):
 
         self.args = args
         self.true_fields = {k: value[0] for k, value in tri_fields.items()}
-        self.alias_fields = {value[1]: value[0] for value in tri_fields.values()}
+        # {field:alias, ...}
+        self.alias_fields = {value[0]: value[1] for value in tri_fields.values()}
         self.tagger_model = model
 
     def train(self, args):
@@ -157,7 +158,7 @@ class Tagger(object):
                          eos_token=eos_token, lower=True)
             # TODO char-bilstm, use eos_token
             FEAT = SubWordField(pad_token=pad_token, unk_token=unk_token, bos_token=bos_token,
-                                fix_len=args.fix_len, tokenize=list)
+                                eos_token=eos_token, fix_len=args.fix_len, tokenize=list)
             # TODO need bos_token and eos_token?
             POS = Field(bos_token=bos_token, eos_token=eos_token)
             conll = Conll.load(args.ftrain)
