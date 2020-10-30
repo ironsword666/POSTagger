@@ -1,0 +1,106 @@
+7
+cuda
+Create fields for Tagger !
+The network structure of POS Tagger is:
+ Tagger_Model(
+  (word_embedding): Embedding(17547, 100)
+  (char_lstm): CharLSTM(
+    (embedding): Embedding(4199, 50)
+    (lstm): LSTM(50, 50, batch_first=True, bidirectional=True)
+  )
+  (bilstm): LSTM(200, 400, num_layers=2, batch_first=True, bidirectional=True)
+  (linear): Linear(in_features=800, out_features=38, bias=True)
+)
+training epoch 1 :
+train loss: 0.5342408874888479
+right and total:  73939 80670
+dev accuracy: 0.916561299119871
+right and total:  172733 189170
+test accuracy: 0.9131099011471163
+epoch time: 0:00:22.223729
+training epoch 2 :
+train loss: 0.16295274843772253
+right and total:  79687 82765
+dev accuracy: 0.9628103667009001
+right and total:  187810 195510
+test accuracy: 0.9606158252774795
+epoch time: 0:00:22.068225
+training epoch 3 :
+train loss: 0.09003646161269259
+right and total:  82070 84452
+dev accuracy: 0.9717946289016246
+right and total:  178407 184480
+test accuracy: 0.9670804423243712
+epoch time: 0:00:22.017353
+training epoch 4 :
+train loss: 0.06669676699388175
+right and total:  80362 81968
+dev accuracy: 0.9804069880929143
+right and total:  180466 184450
+test accuracy: 0.9784006505828138
+epoch time: 0:00:22.394314
+training epoch 5 :
+train loss: 0.05515632417374923
+right and total:  79943 81389
+dev accuracy: 0.9822334713536227
+right and total:  188844 192370
+test accuracy: 0.9816707386806675
+epoch time: 0:00:22.313076
+training epoch 6 :
+train loss: 0.046328118392898715
+right and total:  80796 82153
+dev accuracy: 0.9834820396090221
+right and total:  190190 193490
+test accuracy: 0.9829448550312677
+epoch time: 0:00:22.781200
+training epoch 7 :
+train loss: 0.04112257990112275
+right and total:  81476 82771
+dev accuracy: 0.9843544236507956
+right and total:  184995 188210
+test accuracy: 0.982918017108549
+epoch time: 0:00:22.829550
+training epoch 8 :
+train loss: 0.03674757068999755
+right and total:  80192 81458
+dev accuracy: 0.9844582484225
+right and total:  194039 197160
+test accuracy: 0.9841702170825726
+epoch time: 0:00:22.767586
+training epoch 9 :
+train loss: 0.03232189309265879
+right and total:  79470 80729
+dev accuracy: 0.9844046129643622
+right and total:  184323 187470
+test accuracy: 0.9832133141302608
+epoch time: 0:00:22.550922
+training epoch 10 :
+train loss: 0.0285484665820812
+right and total:  80727 81959
+dev accuracy: 0.9849680938029991
+right and total:  182235 185300
+test accuracy: 0.9834592552617377
+epoch time: 0:00:22.453857
+training epoch 11 :
+train loss: 0.02457661092005394
+right and total:  80010 81335
+dev accuracy: 0.9837093502182332
+right and total:  185159 188300
+test accuracy: 0.9833191715347849
+epoch time: 0:00:22.383124
+training epoch 12 :
+train loss: 0.02163243452431979
+right and total:  79739 81010
+dev accuracy: 0.9843105789408715
+right and total:  186649 189780
+test accuracy: 0.9835019496258826
+epoch time: 0:00:22.388065
+training epoch 13 :
+train loss: 0.019096098564289236
+right and total:  79398 80693
+dev accuracy: 0.9839515199583607
+right and total:  188553 191690
+test accuracy: 0.9836350357347801
+epoch time: 0:00:22.413250
+training epoch 14 :
+train loss: 0.01738421119933511

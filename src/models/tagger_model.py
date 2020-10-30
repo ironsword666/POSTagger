@@ -53,11 +53,11 @@ class Tagger_Model(nn.Module):
         # TODO initialize
         self.transition = nn.Parameter(torch.Tensor(n_tags, n_tags))
 
-    def forward(self, words, chars):
+    def forward(self, words, feats):
         '''
         Params:
             words (Tensor(batch_size, seq_len): ...
-            chars (Tensor(batch_size, seq_len, fix_len)): ...
+            feats (Tensor(batch_size, seq_len, fix_len)): ...
         '''
 
         # words not padded, mask: Tensor(batch, seq_len)
@@ -81,7 +81,7 @@ class Tagger_Model(nn.Module):
 
         # we can also use chars[mask] to get Tensor(sum(actual_seq_len), fix_len)
         # feat_embed = self.char_lstm(chars[mask])
-        feat_embed = self.char_lstm(chars)
+        feat_embed = self.char_lstm(feats)
         # (batch, seq_len, embedding_dim*2)
         embed = torch.cat((word_embed, feat_embed), dim=-1)
 

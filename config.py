@@ -28,7 +28,7 @@ class Config(object):
     decay_steps = 5000
 
     # [训练设置]
-    batch_size = 50             # 每批训练的大小
+    batch_size = 200             # 每批训练的大小
     epochs = 50            # 总迭代轮次
     patience = 10           # dev上多少次不提升则停止训练
 

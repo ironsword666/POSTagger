@@ -1,18 +1,34 @@
 
 import torch
 
-def viterbi():
+def viterbi(scores, mask, transition):
+    '''
+    Params:
+        scores (Tensor(batch, seq_len, tag_nums)): ...
+        mask (Tensor(batch, seq_len)): mask <bos> <eos > and <pad>
+        transition (Tensor(tag_nums, tag_nums)): transition matrix, transition_ij is score of tag_i transit to tag_j
     '''
 
-    '''
+    batch_size, seq_len, _ = scores.size()
+    lens = mask.sum(dim=1) + 2
+
+    # links[*, k, i, j] <=> e(k, j) + t(i, j) <=> k is labeled as tag_j and k-1 is labeled as tag_i
+    links = scores.unsqueeze(dim=2) + transition
+
+    # alpha[*, k, j] is max scores of sequence end in k, and k is labeled as tag_j
+    alpha = scores.new_ones(*scores.size())
+    # backpoint[*, k, j] is tag of k-1 sequence end in k, and k is labeled as tag_j
+    backpoint = scores.new_ones(*scores.size())
+
+
     pass
 
-def crf(scores, tags, mask, transition):
+def crf_forward(scores, tags, mask, transition):
     '''
     Params:
         criterion: loss function
         scores (Tensor(batch, seq_len, tag_nums)): ...
-        tags (Tensor(batch, seq_len)): ...
+        tags (Tensor(batch, seq_len)): include <bos> <eos> and <pad>
         mask (Tensor(batch, seq_len)): mask <bos> <eos > and <pad>
         transition (Tensor(tag_nums, tag_nums)): transition matrix, transition_ij is score of tag_i transit to tag_j
     '''
@@ -24,7 +40,7 @@ def crf(scores, tags, mask, transition):
     # Tensor(batch, seq_len, 1, tag_nums) + Tensor(tag_nums, tag_nums) -> Tensor(batch, seq_len, tag_nums, tag_nums)
     links = scores.unsqueeze(dim=2) + transition
 
-    # zs[*, k, j] is logsumexp of scores of sequence end in k, and k is labeled as tag_j
+    # alpha[*, k, j] is logsumexp of scores of sequence end in k, and k is labeled as tag_j
     # Tensor(batch, seq_len, tag_nums)
     alpha = scores.new_ones(*scores.size())
     # TODO how to handle <pad> <bos> and <eos>

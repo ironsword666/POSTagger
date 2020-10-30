@@ -127,7 +127,7 @@ class Field(RawField):
 
         # use OrderedDict to keep tokens ordered and unique
         specials = list(OrderedDict.fromkeys(
-            token for token in [self.pad, self.unk_token, self.bos_token,
+            token for token in [self.pad_token, self.unk_token, self.bos_token,
                                 self.eos_token] + specials
             if token is not None))
 
@@ -145,7 +145,7 @@ class Field(RawField):
         ''' numericalize a list of examples to create a torch.Tensor.
 
         Params: 
-            batch (list[tuple(str)]): List of examples not tokenized and padded. 
+            batch (list[list(str)]): List of examples not tokenized and padded. 
         
         Returns:
             tensors (list[Tensor]): List of tensors, a tensor corresponding to a example numericalized. 
@@ -218,7 +218,7 @@ class SubWordField(Field):
 
         # use OrderedDict to keep tokens ordered and unique
         specials = list(OrderedDict.fromkeys(
-            token for token in [self.pad, self.unk_token, self.bos_token,
+            token for token in [self.pad_token, self.unk_token, self.bos_token,
                                 self.eos_token] + specials
             if token is not None))
 
@@ -234,16 +234,19 @@ class SubWordField(Field):
 
     def numericalize(self, batch):
 
-        pad_index = self.vocab[self.pad_token]
-
         batch = [[self.preprocess(token) for token in example] for example in batch]
+        # TODO deal with <bos> of sentence and <bos> of word, 
+        # <bos> is in char vocab, then <bos> of sentence token2id as a number, 
+        # not '< b o s >' split. 
+        # And, there is no <bos> of word.
+        # however, we can add <w> and </w> to improve performance.
         if self.bos_token:
             batch = [[[self.bos_token]] + example for example in batch]
         if self.eos_token:
             batch = [example + [[self.eos_token]] for example in batch]
         if self.use_vocab:
             batch = [[self.vocab.token2id(token) for token in example] for example in batch]
-        batch = [[token[:self.fix_len] + [pad_index] * (self.fix_len - len(token)) 
+        batch = [[token[:self.fix_len] + [self.pad_index] * (self.fix_len - len(token)) 
                  for token in example] for example in batch]
         # list[Tensor(seq_len, fix_len)]
         batch = [torch.tensor(example) for example in batch]

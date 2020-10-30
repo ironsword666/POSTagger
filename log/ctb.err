@@ -1,0 +1,8 @@
+Traceback (most recent call last):
+  File "run.py", line 51, in <module>
+    tagger.train(tagger.args)
+  File "/home/zhenghuali/yhou/POSTagger/src/learner/tagger.py", line 60, in train
+    accuracy = self.evaluate(args, dev.data_loader)
+  File "/home/zhenghuali/yhou/POSTagger/src/learner/tagger.py", line 118, in evaluate
+    equal = torch.eq(out[mask], tags[mask])
+IndexError: The shape of the mask [3, 52] at index 1 does not match the shape of the indexed tensor [3, 51] at index 1

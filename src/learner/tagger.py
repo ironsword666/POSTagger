@@ -1,13 +1,13 @@
 import sys
 import os
-
+from datetime import datetime, timedelta
 
 from src.models.tagger_model import Tagger_Model
 from src.utils.field import Field, SubWordField
 from src.utils.corpus import Conll, Embedding
 from src.utils.dataloader import TextDataSet
 from src.utils.common import pad_token, unk_token, bos_token, eos_token
-from src.utils.algorithms import crf, viterbi
+from src.utils.algorithms import crf_forward, viterbi
 from src.utils.functions import preprocessing_heads
 from src.utils.metric import Metric
 
@@ -49,18 +49,28 @@ class Tagger(object):
         # new_lr = initial_lr * gamma**epoch = initial_lr * 0.75**(epoch/5000)
         self.scheduler = ExponentialLR(self.optimizer, args.decay**(1/args.decay_steps)) 
 
+        total_time = timedelta()
         best_epoch, metric = 0, Metric()
         for epoch in range(1, args.epochs+1):
+            start_time = datetime.now()
+
             print('training epoch {} :'.format(epoch))
             loss, metric = self.train_epoch(args, train.data_loader)
-            print('total_loss: {}'.format(loss))
-            # TODO dev
+            print('train loss: {}'.format(loss))
             accuracy = self.evaluate(args, dev.data_loader)
+            print('dev accuracy: {}'.format(accuracy))
+
+            time_diff = datetime.now() - start_time
+            print('epoch time: {}'.format(time_diff))
+            total_time += time_diff
             # if accuracy > best_accuracy:
                 # best_epoch = epoch
 
             # if epoch - best_epoch > args.patience:
                 # break
+        accuracy = self.evaluate(args, test.data_loader)
+        print('test accuracy: {}'.format(accuracy))
+        print('total_time: {}'.format(total_time))
     
     def train_epoch(self, args, data_loader):
 
@@ -72,12 +82,14 @@ class Tagger(object):
             self.optimizer.zero_grad()
             # mask <bos> <eos > and <pad>
             mask = words.ne(self.true_fields['WORD'].pad_index) & words.ne(self.true_fields['WORD'].bos_index) & words.ne(self.true_fields['WORD'].eos_index)
-            # compute score
+            # (batch, seq_len, tag_nums); include <bos> <eos> and <pad>
             scores = self.tagger_model(words, feats) 
-            if not args.use_crf:
-                loss = self.get_loss(self.criterion, scores, tags, mask, use_crf=False, transition=None)
-            else:
-                loss = self.get_loss(None, scores, tags, mask, use_crf=True, transition=self.tagger_model.transition)
+
+            transition = None
+            if args.use_crf:
+                transition = self.tagger_model.transition
+
+            loss = self.get_loss(self.criterion, scores, tags, mask, use_crf=args.use_crf, transition=transition)
             # compute grad
             loss.backward() 
             # clip grad which is larger than args.clip
@@ -92,6 +104,7 @@ class Tagger(object):
         
         return total_loss / len(data_loader), 0
 
+    @torch.no_grad()
     def evaluate(self, args, data_loader):
         ''''''
         
@@ -102,10 +115,12 @@ class Tagger(object):
             mask = words.ne(self.true_fields['WORD'].pad_index) & words.ne(self.true_fields['WORD'].bos_index) & words.ne(self.true_fields['WORD'].eos_index)
             scores = self.tagger_model(words, feats) 
             out = torch.argmax(scores, dim=-1)
+            # print(words.size(), feats.size(), scores.size(), out.size(), tags.size(), mask.size())
             equal = torch.eq(out[mask], tags[mask])
             n_right += torch.sum(equal).item()
-            n_total += torch.sum(mask)
+            n_total += torch.sum(mask).item()
 
+        print('right and total: ', n_right, n_total)
         accuracy = n_right / n_total
         return accuracy
 
@@ -136,9 +151,12 @@ class Tagger(object):
             target = tags[mask]
             loss = criterion(scores, target)
         else:
-            loss = crf(scores, tags, mask, transition)
+            loss = crf_forward(scores, tags, mask, transition)
+            if torch.isnan(loss):
+                raise Exception('loss is nan')
         return loss
 
+    
     def decode(self, scores_arc, mask):
         pass
 
@@ -191,6 +209,7 @@ class Tagger(object):
                                     pad_index=WORD.pad_index,
                                     unk_index=WORD.unk_index)
 
+        # TODO save model
         if os.path.exists(args.tagger_model):
             state = torch.load(args.tagger_model, map_location=args.device)
             tagger_model.load_pretrained(state['pretrained'])

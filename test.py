@@ -4,6 +4,7 @@ import os
 import sys
 import random
 import argparse
+from datetime import datetime, timedelta
 
 import torch
 from torch.nn.utils.rnn import pad_sequence, pack_padded_sequence, pad_packed_sequence
@@ -135,16 +136,15 @@ if __name__ == '__main__':
     # args = parser.parse_args()
 
     # print(args.foo)
-    def f():
-
-        for i in range(5):
-            yield i
-
-    l = f()
-    for i in l:
-        print(i)
-
-    m = [f(), f()]
-    for i, j in zip(range(2), zip(*m)):
-        print(i, j)
+    # os.environ['CUDA_VISIBLE_DEVICES'] = '2'
+    # device = 'cuda' if torch.cuda.is_available() else 'cpu'
+    # print(device)
+    # print(torch.version.cuda)
+    # print(torch.cuda.is_available()) # 是否可以使用GPU
+    # print(torch.cuda.device_count()) # GPU数
+    # print(torch.cuda.get_device_name()) # 从0开始显示GPU名称
+    # print(torch.cuda.current_device()) # 当前GPU
+    
+    a = torch.randn(10,10)
+    print(a.size(1))
 
