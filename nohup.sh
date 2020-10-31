@@ -11,7 +11,7 @@
 
 
 python -u run.py \
-    --device=3 \
+    --device=5 \
     --seed=1 \
     --use_crf \
     --ftrain=data/ctb/train.conll \
@@ -20,4 +20,4 @@ python -u run.py \
     --w2v=data/embedding/giga_with_unk.100.txt \
     --unk=UNK \
     --save_dir=save/ \
-    >log/ctb5_crf.out 2>log/ctb5_crf.err &
+    >log/ctb5_crf_viterbi.out 2>log/ctb5_crf_viterbi.err &

@@ -1,0 +1,19 @@
+5
+cuda
+Create fields for Tagger !
+The network structure of POS Tagger is:
+ Tagger_Model(
+  (word_embedding): Embedding(17547, 100)
+  (char_lstm): CharLSTM(
+    (embedding): Embedding(4199, 50)
+    (lstm): LSTM(50, 50, batch_first=True, bidirectional=True)
+  )
+  (bilstm): LSTM(200, 400, num_layers=2, batch_first=True, bidirectional=True)
+  (linear): Linear(in_features=800, out_features=37, bias=True)
+)
+training epoch 1 :
+train loss: 7996.899395978009
+right and total:  724 20454
+dev accuracy: 0.03539649946220788
+epoch time: 0:04:01.263534
+training epoch 2 :

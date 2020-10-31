@@ -114,9 +114,12 @@ class Tagger(object):
 
             mask = words.ne(self.true_fields['WORD'].pad_index) & words.ne(self.true_fields['WORD'].bos_index) & words.ne(self.true_fields['WORD'].eos_index)
             scores = self.tagger_model(words, feats) 
-            out = torch.argmax(scores, dim=-1)
+            if args.use_crf:
+                preds = viterbi(scores, mask, self.tagger_model.transition)
+            else:
+                preds = torch.argmax(scores, dim=-1)
             # print(words.size(), feats.size(), scores.size(), out.size(), tags.size(), mask.size())
-            equal = torch.eq(out[mask], tags[mask])
+            equal = torch.eq(preds[mask], tags[mask])
             n_right += torch.sum(equal).item()
             n_total += torch.sum(mask).item()
 

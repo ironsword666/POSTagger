@@ -51,7 +51,7 @@ class Tagger_Model(nn.Module):
 
         # state transition matrix
         # TODO initialize
-        self.transition = nn.Parameter(torch.Tensor(n_tags, n_tags))
+        self.transition = nn.Parameter(torch.randn(n_tags, n_tags))
 
     def forward(self, words, feats):
         '''

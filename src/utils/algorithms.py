@@ -1,6 +1,7 @@
 
 import torch
 
+@torch.no_grad()
 def viterbi(scores, mask, transition):
     '''
     Params:
@@ -16,12 +17,24 @@ def viterbi(scores, mask, transition):
     links = scores.unsqueeze(dim=2) + transition
 
     # alpha[*, k, j] is max scores of sequence end in k, and k is labeled as tag_j
-    alpha = scores.new_ones(*scores.size())
+    alpha = torch.ones_like(scores)
     # backpoint[*, k, j] is tag of k-1 sequence end in k, and k is labeled as tag_j
-    backpoint = scores.new_ones(*scores.size())
+    backpoints = torch.ones_like(scores, dtype=torch.long)
+    preds = scores.new_ones((batch_size, seq_len))
 
+    for i in range(1, seq_len):
+        # (batch, tag_nums, 1) + (batch, tag_nums, tag_nums) -> (batch, tag_nums, tag_nums)
+        max_values, max_indices = torch.max(alpha[:, i].unsqueeze(dim=-1) + links[:, i], dim=1)
+        alpha[:, i] = max_values
+        backpoints[:, i] = max_indices
 
-    pass
+    for i in range(batch_size):
+        p = alpha[i, lens[i]-1].argmax()
+        for j in range(lens[i]-2, 0, -1):
+            p = backpoints[i, j+1, p]
+            preds[i, j] = p
+
+    return preds
 
 def crf_forward(scores, tags, mask, transition):
     '''
