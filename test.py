@@ -144,7 +144,9 @@ if __name__ == '__main__':
     # print(torch.cuda.device_count()) # GPU数
     # print(torch.cuda.get_device_name()) # 从0开始显示GPU名称
     # print(torch.cuda.current_device()) # 当前GPU
-    
-    a = torch.randn(10,10)
-    print(a.size(1))
 
+    m = nn.Dropout(p=0.2)
+    i = torch.ones(4)
+    print(i)
+    output = m(i)
+    print(output)

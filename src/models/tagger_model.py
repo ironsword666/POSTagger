@@ -44,10 +44,12 @@ class Tagger_Model(nn.Module):
                               num_layers=n_lstm_layer,
                               batch_first=True,
                               bidirectional=True)
+        
+        # TODO transform? add a layer transform n_lstm_hidden*2 to n_lstm_hidden then activate
 
         # Linear Layer
         self.linear = nn.Linear(in_features=n_lstm_hidden*2,
-                            out_features=n_tags)
+                                out_features=n_tags)
 
         # state transition matrix
         # TODO initialize

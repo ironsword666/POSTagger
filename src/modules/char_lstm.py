@@ -5,7 +5,7 @@ from torch.nn.utils.rnn import pad_sequence, pack_padded_sequence, pad_packed_se
 class CharLSTM(nn.Module):
     '''use h_t of bilstm as representation of the word'''
     
-    def __init__(self,n_chars, n_char_embed, n_out, pad_index=0):
+    def __init__(self, n_chars, n_char_embed, n_out, pad_index=0):
         super(CharLSTM, self).__init__()
         
         self.pad_index = pad_index

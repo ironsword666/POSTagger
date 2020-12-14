@@ -139,6 +139,7 @@ class Field(RawField):
             self.vocab.extend(embed.vocab)
             self.embed = torch.zeros(len(self.vocab), embed.dim)
             self.embed[self.vocab.token2id(embed.vocab.itos)] = embed.vectors
+            # TODO z-norm
 
 
     def numericalize(self, batch):

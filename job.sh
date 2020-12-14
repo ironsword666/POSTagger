@@ -1,5 +1,9 @@
+#!/bin/bash
+
+# export CUDA_VISIBLE_DEVICES=
+
 # python -u run.py \
-#     --device=5 \
+#     --device=2 \
 #     --seed=1 \
 #     --ftrain=data/ctb/train.conll \
 #     --fdev=data/ctb/dev.conll \
@@ -11,7 +15,7 @@
 
 
 python -u run.py \
-    --device=5 \
+    --device=1 \
     --seed=1 \
     --use_crf \
     --ftrain=data/ctb/train.conll \

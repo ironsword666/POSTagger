@@ -9,17 +9,17 @@ from torch.nn.utils.rnn import pad_sequence
 class TextDataSet(Dataset):
     ''' TextDateset '''
 
-    def __init__(self, examples, alias_fields):
+    def __init__(self, examples, fields):
         ''' deal with the dataset.
         
         Params:
             examples (Corpus)
-            alias_fields (dict{Fields: alias_name}): alias name is corresponding name in Corpus
+            fields (dict{Field: name}): name is corresponding name in Corpus
         '''
 
         super(TextDataSet, self).__init__()
         self.examples = examples
-        self.fields = alias_fields
+        self.fields = fields
 
     def __getitem__(self, idx):
         example = self.examples[idx]
@@ -46,18 +46,19 @@ class TextDataLoader(DataLoader):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+
         self.fields = self.dataset.fields
 
     def __iter__(self):
-        # batch (dict{field:sub_batch})
+        # batch (dict{field:sub_batch}), result from TextDataSet.collect_fn 
         for batch in super().__iter__():
             # print(len(batch))
-            yield [f.process(d) for f, d in batch.items()]
+            yield [f.process(b) for f, b in batch.items()]
             # print('-------------')
 
 
 class TextBatchSampler(Sampler):
-    '''批量采样数据'''
+    ''''''
 
     def __init__(self):
         pass

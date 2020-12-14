@@ -1,4 +1,4 @@
-5
+1
 cuda
 Create fields for Tagger !
 The network structure of POS Tagger is:
@@ -12,8 +12,3 @@ The network structure of POS Tagger is:
   (linear): Linear(in_features=800, out_features=37, bias=True)
 )
 training epoch 1 :
-train loss: 7996.899395978009
-right and total:  724 20454
-dev accuracy: 0.03539649946220788
-epoch time: 0:04:01.263534
-training epoch 2 :

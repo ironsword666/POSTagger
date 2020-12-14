@@ -7,7 +7,7 @@ from src.utils.field import Field, SubWordField
 from src.utils.corpus import Conll, Embedding
 from src.utils.dataloader import TextDataSet
 from src.utils.common import pad_token, unk_token, bos_token, eos_token
-from src.utils.algorithms import crf_forward, viterbi
+from src.utils.algorithms import neg_log_likelihood, viterbi
 from src.utils.functions import preprocessing_heads
 from src.utils.metric import Metric
 
@@ -18,12 +18,19 @@ from torch.optim.lr_scheduler import ExponentialLR
 
 class Tagger(object):
 
-    def __init__(self, args, tri_fields, model):
+    def __init__(self, args, fields, model):
 
         self.args = args
-        self.true_fields = {k: value[0] for k, value in tri_fields.items()}
-        # {field:alias, ...}
-        self.alias_fields = {value[0]: value[1] for value in tri_fields.values()}
+        # self.true_fields = {k: value[0] for k, value in tri_fields.items()}
+        # # {field:alias, ...}
+        # self.alias_fields = {value[0]: value[1] for value in tri_fields.values()}
+        self.fields = fields
+        # field to name in Corpus
+        self.fields_alias = {
+            fields['WORD']: Conll.FIELD_NAMES[1],
+            fields['FEAT']: Conll.FIELD_NAMES[1],
+            fields['POS']: Conll.FIELD_NAMES[3]
+        }
         self.tagger_model = model
 
     def train(self, args):
@@ -35,11 +42,11 @@ class Tagger(object):
         '''
 
         # build dataset
-        train = TextDataSet(Conll.load(args.ftrain), self.alias_fields)
+        train = TextDataSet(Conll.load(args.ftrain), self.fields_alias)
         train.build_loader(batch_size=args.batch_size, shuffle=True)
-        dev = TextDataSet(Conll.load(args.fdev), self.alias_fields)
+        dev = TextDataSet(Conll.load(args.fdev), self.fields_alias)
         dev.build_loader(batch_size=args.batch_size)
-        test = TextDataSet(Conll.load(args.ftest), self.alias_fields)
+        test = TextDataSet(Conll.load(args.ftest), self.fields_alias)
         test.build_loader(batch_size=args.batch_size)
         
         self.criterion = nn.CrossEntropyLoss(reduction='mean') 
@@ -81,7 +88,7 @@ class Tagger(object):
 
             self.optimizer.zero_grad()
             # mask <bos> <eos > and <pad>
-            mask = words.ne(self.true_fields['WORD'].pad_index) & words.ne(self.true_fields['WORD'].bos_index) & words.ne(self.true_fields['WORD'].eos_index)
+            mask = words.ne(self.fields['WORD'].pad_index) & words.ne(self.fields['WORD'].bos_index) & words.ne(self.fields['WORD'].eos_index)
             # (batch, seq_len, tag_nums); include <bos> <eos> and <pad>
             scores = self.tagger_model(words, feats) 
 
@@ -112,12 +119,13 @@ class Tagger(object):
         n_total, n_right = 0, 0 # 所有文本，分类对了的文本
         for words, feats, tags in data_loader:
 
-            mask = words.ne(self.true_fields['WORD'].pad_index) & words.ne(self.true_fields['WORD'].bos_index) & words.ne(self.true_fields['WORD'].eos_index)
+            mask = words.ne(self.fields['WORD'].pad_index) & words.ne(self.fields['WORD'].bos_index) & words.ne(self.fields['WORD'].eos_index)
             scores = self.tagger_model(words, feats) 
             if args.use_crf:
                 preds = viterbi(scores, mask, self.tagger_model.transition)
             else:
                 preds = torch.argmax(scores, dim=-1)
+            # preds = torch.argmax(scores, dim=-1)
             # print(words.size(), feats.size(), scores.size(), out.size(), tags.size(), mask.size())
             equal = torch.eq(preds[mask], tags[mask])
             n_right += torch.sum(equal).item()
@@ -154,7 +162,7 @@ class Tagger(object):
             target = tags[mask]
             loss = criterion(scores, target)
         else:
-            loss = crf_forward(scores, tags, mask, transition)
+            loss = neg_log_likelihood(scores, tags, mask, transition)
             if torch.isnan(loss):
                 raise Exception('loss is nan')
         return loss
@@ -184,22 +192,28 @@ class Tagger(object):
             POS = Field(bos_token=bos_token, eos_token=eos_token)
             conll = Conll.load(args.ftrain)
 
-            tri_fields = {
-                'WORD': (WORD, Conll.field_names[1]),
-                'FEAT': (FEAT, Conll.field_names[1]),
-                'POS': (POS, Conll.field_names[3])
+            fields = {
+                'WORD': WORD,
+                'FEAT': FEAT,
+                'POS': POS
             }
             
             # field.build_vocab(getattr(conll, name), (Embedding.load(args.w2v, args.unk) if args.w2v else None))
-            WORD.build_vocab(examples=getattr(conll, tri_fields['WORD'][1]), 
+            WORD.build_vocab(examples=getattr(conll, Conll.FIELD_NAMES[1]), 
                              min_freq=args.min_freq, 
                              embed=(Embedding.load(args.w2v) if args.w2v else None))
-            FEAT.build_vocab(examples=getattr(conll, tri_fields['FEAT'][1]))
-            POS.build_vocab(examples=getattr(conll, tri_fields['POS'][1]))
+            FEAT.build_vocab(examples=getattr(conll, Conll.FIELD_NAMES[1]))
+            POS.build_vocab(examples=getattr(conll, Conll.FIELD_NAMES[3]))
         # TODO load fields
         else:
             pass
+
         # build tagger model
+        # # TODO
+        # args.update({
+        #     'n_words': WORD.vocab.n_init,
+        # })
+        # tagger_model = cls.MODEL(**args)
         # TODO
         tagger_model = Tagger_Model(n_words=WORD.vocab.n_init,
                                     n_chars=FEAT.vocab.n_init,
@@ -223,7 +237,7 @@ class Tagger(object):
         print('The network structure of POS Tagger is:\n', tagger_model)
 
         
-        return cls(args, tri_fields, tagger_model)
+        return cls(args, fields, tagger_model)
 
 
         

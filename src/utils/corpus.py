@@ -45,7 +45,7 @@ class Conll(Corpus):
     8    DEPREL  当前词语与中心词的依存关系
     '''
 
-    field_names = ['ID', 'FORM', 'LEMMA', 'CPOSTAG', 'POSTAG', 'FEATS', 'HEAD', 'DEPREL', 'PHEAD', 'PDEPREL']
+    FIELD_NAMES = ['ID', 'FORM', 'LEMMA', 'CPOSTAG', 'POSTAG', 'FEATS', 'HEAD', 'DEPREL', 'PHEAD', 'PDEPREL']
 
     def __init__(self, sentences):
         self.sentences = sentences
@@ -77,7 +77,7 @@ class Conll(Corpus):
                 sentence = [line.split('\t') for line in lines[start:i]]
                 # [[1, 2, 3, ...], [In, an, Oct, ...], ...]
                 values = [list(f) for f in zip(*sentence)]
-                sentences.append(ConllSentence(Conll.field_names, values))
+                sentences.append(ConllSentence(Conll.FIELD_NAMES, values))
                 start = i + 1
         
         return cls(sentences)
