@@ -71,7 +71,7 @@ class Tagger_Model(nn.Module):
 
         # find words whose index is beyond word_embedding boundry
         outside_mask = words.ge(self.word_embedding.num_embeddings)
-        # replace these indices with unk tag, now, all words are inside boundry
+        # replace outside indices with unk tag, now, all words are inside boundry
         inside_words = words.masked_fill(outside_mask, self.unk_index)
         # (batch, seq_len) -> (batch, seq_len, embedding_dim)
         word_embed = self.word_embedding(inside_words)

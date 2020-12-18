@@ -14,7 +14,7 @@ class TextDataSet(Dataset):
         
         Params:
             examples (Corpus)
-            fields (dict{Field: name}): name is corresponding name in Corpus
+            fields (dict{name: Field})
         '''
 
         super(TextDataSet, self).__init__()
@@ -22,23 +22,31 @@ class TextDataSet(Dataset):
         self.fields = fields
 
     def __getitem__(self, idx):
+        # get a Sentence()
         example = self.examples[idx]
-        for name in self.fields.values():
-            yield getattr(example, name)
+        for field in self.fields.values():
+            yield getattr(example, field.attr_name)
 
     def __len__(self):
         return len(self.examples)
 
     def collect_fn(self, batch):
-        ''' use f.process to numeriliaze and pad batch '''
-        return {f: d for f, d in zip(self.fields.keys(), zip(*batch))}
+        ''' 
+        collect a field of different sentences to a sub batch.
+
+        Args:
+            batch (list): [dataset[i] for i in range(indices)],
+                dataset[i] yeild a sequence of field values of a Sentence()
+        '''
+
+        return {field: sub_batch                                                                                                                     for field, sub_batch in zip(self.fields.values(), zip(*batch))}
 
     def build_loader(self, batch_size, shuffle=True):
 
         self.data_loader = TextDataLoader(dataset=self,
-                                     batch_size=batch_size,
-                                     shuffle=shuffle,
-                                     collate_fn=self.collect_fn)
+                                          batch_size=batch_size,
+                                          shuffle=shuffle,
+                                          collate_fn=self.collect_fn)
 
 
 class TextDataLoader(DataLoader):
@@ -50,6 +58,10 @@ class TextDataLoader(DataLoader):
         self.fields = self.dataset.fields
 
     def __iter__(self):
+        '''
+        produce a generator, obtained by next() of super().
+        '''
+
         # batch (dict{field:sub_batch}), result from TextDataSet.collect_fn 
         for batch in super().__iter__():
             # print(len(batch))

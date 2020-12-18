@@ -19,18 +19,14 @@ from torch.optim.lr_scheduler import ExponentialLR
 class Tagger(object):
 
     def __init__(self, args, fields, model):
+        '''
+        Args:
+            fields (dict): a dict of name-field pairs.
+            model
+        '''
 
         self.args = args
-        # self.true_fields = {k: value[0] for k, value in tri_fields.items()}
-        # # {field:alias, ...}
-        # self.alias_fields = {value[0]: value[1] for value in tri_fields.values()}
         self.fields = fields
-        # field to name in Corpus
-        self.fields_alias = {
-            fields['WORD']: Conll.FIELD_NAMES[1],
-            fields['FEAT']: Conll.FIELD_NAMES[1],
-            fields['POS']: Conll.FIELD_NAMES[3]
-        }
         self.tagger_model = model
 
     def train(self, args):
@@ -42,11 +38,11 @@ class Tagger(object):
         '''
 
         # build dataset
-        train = TextDataSet(Conll.load(args.ftrain), self.fields_alias)
+        train = TextDataSet(Conll.load(args.ftrain), self.fields)
         train.build_loader(batch_size=args.batch_size, shuffle=True)
-        dev = TextDataSet(Conll.load(args.fdev), self.fields_alias)
+        dev = TextDataSet(Conll.load(args.fdev), self.fields)
         dev.build_loader(batch_size=args.batch_size)
-        test = TextDataSet(Conll.load(args.ftest), self.fields_alias)
+        test = TextDataSet(Conll.load(args.ftest), self.fields)
         test.build_loader(batch_size=args.batch_size)
         
         self.criterion = nn.CrossEntropyLoss(reduction='mean') 
@@ -171,6 +167,12 @@ class Tagger(object):
     def decode(self, scores_arc, mask):
         pass
 
+    def save(self, path):
+        pass
+    
+    def load(self, path):
+        pass
+
     @classmethod
     def build_tagger(cls, args):
         
@@ -182,6 +184,7 @@ class Tagger(object):
         # TODO merge fields and model in a torch.save
         # build tagger fields
         if not os.path.exists(args.tagger_fields):
+
             print('Create fields for Tagger !')
             WORD = Field(pad_token=pad_token, unk_token=unk_token, bos_token=bos_token, 
                          eos_token=eos_token, lower=True)
@@ -190,20 +193,27 @@ class Tagger(object):
                                 eos_token=eos_token, fix_len=args.fix_len, tokenize=list)
             # TODO need bos_token and eos_token?
             POS = Field(bos_token=bos_token, eos_token=eos_token)
-            conll = Conll.load(args.ftrain)
-
+            
+            
             fields = {
                 'WORD': WORD,
                 'FEAT': FEAT,
                 'POS': POS
             }
-            
+
+            # extract attribute names from FIELD_NAMES
+            attr_names = [Conll.FIELD_NAMES[idx] for idx in [1, 1, 3]]
+            for field, name in zip(fields.values(), attr_names):
+                field.set_attr_name(name) 
+
+            conll = Conll.load(args.ftrain)
             # field.build_vocab(getattr(conll, name), (Embedding.load(args.w2v, args.unk) if args.w2v else None))
-            WORD.build_vocab(examples=getattr(conll, Conll.FIELD_NAMES[1]), 
+            WORD.build_vocab(examples=getattr(conll, WORD.attr_name), 
                              min_freq=args.min_freq, 
                              embed=(Embedding.load(args.w2v) if args.w2v else None))
-            FEAT.build_vocab(examples=getattr(conll, Conll.FIELD_NAMES[1]))
-            POS.build_vocab(examples=getattr(conll, Conll.FIELD_NAMES[3]))
+            FEAT.build_vocab(examples=getattr(conll, FEAT.attr_name))
+            POS.build_vocab(examples=getattr(conll, POS.attr_name))
+
         # TODO load fields
         else:
             pass
@@ -226,17 +236,18 @@ class Tagger(object):
                                     pad_index=WORD.pad_index,
                                     unk_index=WORD.unk_index)
 
-        # TODO save model
+        # load pretrain parameters
         if os.path.exists(args.tagger_model):
             state = torch.load(args.tagger_model, map_location=args.device)
             tagger_model.load_pretrained(state['pretrained'])
             tagger_model.load_state_dict(state['state_dict'], False)
         
+        # to GPU
         tagger_model.to(args.device)
         
         print('The network structure of POS Tagger is:\n', tagger_model)
 
-        
+        # 
         return cls(args, fields, tagger_model)
 
 

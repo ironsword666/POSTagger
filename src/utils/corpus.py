@@ -33,7 +33,6 @@ class Sentence(object):
 
 class Conll(Corpus):
     '''
-
     A conllx file has 10 fields:
     1    ID      当前词在句子中的序号，１开始.
     2    FORM    当前词语或标点

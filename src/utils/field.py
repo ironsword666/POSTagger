@@ -111,7 +111,7 @@ class Field(RawField):
 
         Params:
             examples: Represent the set of possible values for this field.
-            specials (list[str]): The list of special tokens.
+            specials (list[str]): The list of special tokens, such as `CLS`.
         
         '''
         if not self.use_vocab:
@@ -177,7 +177,16 @@ class Field(RawField):
         
         # TODO keep sorted
         return pad_sequence(tensors, batch_first=True).to(self.device)
-    
+
+    def set_attr_name(self, value):
+        ''' attr_name is a field name of Corpus which Field correspond to. '''
+        self._attr_name = value
+
+    @property
+    def attr_name(self):
+        return self._attr_name
+
+
     @property
     def device(self):
         return 'cuda' if torch.cuda.is_available() else 'cpu'

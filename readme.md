@@ -1,3 +1,18 @@
+# TODO List
+
+## fields使用一种更合适的方式
+
+```
+fields = {
+    'WORD': WORD,
+    'FEAT': FEAT,
+    'POS': POS
+}
+```
+
+## tagger 需要能够保存和加载
+
+
 # 说明：
 
 一个BiLSTM-CRF词性标注器。
