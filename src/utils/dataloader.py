@@ -14,7 +14,7 @@ class TextDataSet(Dataset):
         
         Params:
             examples (Corpus)
-            fields (dict{name: Field})
+            fields: a sequence of Field()
         '''
 
         super(TextDataSet, self).__init__()
@@ -24,7 +24,7 @@ class TextDataSet(Dataset):
     def __getitem__(self, idx):
         # get a Sentence()
         example = self.examples[idx]
-        for field in self.fields.values():
+        for field in self.fields:
             yield getattr(example, field.attr_name)
 
     def __len__(self):
@@ -39,7 +39,7 @@ class TextDataSet(Dataset):
                 dataset[i] yeild a sequence of field values of a Sentence()
         '''
 
-        return {field: sub_batch                                                                                                                     for field, sub_batch in zip(self.fields.values(), zip(*batch))}
+        return {field: sub_batch for field, sub_batch in zip(self.fields, zip(*batch))}    
 
     def build_loader(self, batch_size, shuffle=True):
 
@@ -50,7 +50,7 @@ class TextDataSet(Dataset):
 
 
 class TextDataLoader(DataLoader):
-    '''加载TextDataset中的数据'''
+    ''' load data in TextDataSet'''
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -65,7 +65,7 @@ class TextDataLoader(DataLoader):
         # batch (dict{field:sub_batch}), result from TextDataSet.collect_fn 
         for batch in super().__iter__():
             # print(len(batch))
-            yield [f.process(b) for f, b in batch.items()]
+            yield [field.process(sub_batch) for field, sub_batch in batch.items()]
             # print('-------------')
 
 

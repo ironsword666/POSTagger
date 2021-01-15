@@ -27,6 +27,9 @@ class Tagger(object):
 
         self.args = args
         self.fields = fields
+        # self.WORD = xx, self.xx = xx, ....
+        for k, v in fields.items():
+            setattr(self, k, v)
         self.tagger_model = model
 
     def train(self, args):
@@ -38,11 +41,11 @@ class Tagger(object):
         '''
 
         # build dataset
-        train = TextDataSet(Conll.load(args.ftrain), self.fields)
+        train = TextDataSet(Conll.load(args.ftrain), self.fields.values())
         train.build_loader(batch_size=args.batch_size, shuffle=True)
-        dev = TextDataSet(Conll.load(args.fdev), self.fields)
+        dev = TextDataSet(Conll.load(args.fdev), self.fields.values())
         dev.build_loader(batch_size=args.batch_size)
-        test = TextDataSet(Conll.load(args.ftest), self.fields)
+        test = TextDataSet(Conll.load(args.ftest), self.fields.values())
         test.build_loader(batch_size=args.batch_size)
         
         self.criterion = nn.CrossEntropyLoss(reduction='mean') 
@@ -64,7 +67,7 @@ class Tagger(object):
             print('dev accuracy: {}'.format(accuracy))
 
             time_diff = datetime.now() - start_time
-            print('epoch time: {}'.format(time_diff))
+            print('epoch time: {} \n'.format(time_diff))
             total_time += time_diff
             # if accuracy > best_accuracy:
                 # best_epoch = epoch
@@ -84,8 +87,8 @@ class Tagger(object):
 
             self.optimizer.zero_grad()
             # mask <bos> <eos > and <pad>
-            mask = words.ne(self.fields['WORD'].pad_index) & words.ne(self.fields['WORD'].bos_index) & words.ne(self.fields['WORD'].eos_index)
             # (batch, seq_len, tag_nums); include <bos> <eos> and <pad>
+            mask = words.ne(self.WORD.pad_index) & words.ne(self.WORD.bos_index) & words.ne(self.WORD.eos_index)
             scores = self.tagger_model(words, feats) 
 
             transition = None
@@ -115,7 +118,7 @@ class Tagger(object):
         n_total, n_right = 0, 0 # 所有文本，分类对了的文本
         for words, feats, tags in data_loader:
 
-            mask = words.ne(self.fields['WORD'].pad_index) & words.ne(self.fields['WORD'].bos_index) & words.ne(self.fields['WORD'].eos_index)
+            mask = words.ne(self.WORD.pad_index) & words.ne(self.WORD.bos_index) & words.ne(self.WORD.eos_index)
             scores = self.tagger_model(words, feats) 
             if args.use_crf:
                 preds = viterbi(scores, mask, self.tagger_model.transition)
@@ -185,7 +188,7 @@ class Tagger(object):
         # build tagger fields
         if not os.path.exists(args.tagger_fields):
 
-            print('Create fields for Tagger !')
+            print('Create fields for Tagger !\n')
             WORD = Field(pad_token=pad_token, unk_token=unk_token, bos_token=bos_token, 
                          eos_token=eos_token, lower=True)
             # TODO char-bilstm, use eos_token
@@ -226,15 +229,19 @@ class Tagger(object):
         # tagger_model = cls.MODEL(**args)
         # TODO
         tagger_model = Tagger_Model(n_words=WORD.vocab.n_init,
-                                    n_chars=FEAT.vocab.n_init,
+                                    n_feats=FEAT.vocab.n_init,
                                     n_tags=POS.vocab.n_init,
+                                    feat=args.feat,
                                     n_embed=args.n_embed,
                                     n_char_embed=args.n_char_embed,
                                     n_feat_embed=args.n_feat_embed,
+                                    embed_dropout=args.embed_dropout,
                                     n_lstm_hidden=args.n_lstm_hidden,
                                     n_lstm_layer=args.n_lstm_layer,
+                                    lstm_dropout=args.lstm_dropout,
                                     pad_index=WORD.pad_index,
-                                    unk_index=WORD.unk_index)
+                                    unk_index=WORD.unk_index,
+                                    feat_pad_index=FEAT.pad_index)
 
         # load pretrain parameters
         if os.path.exists(args.tagger_model):
@@ -245,7 +252,7 @@ class Tagger(object):
         # to GPU
         tagger_model.to(args.device)
         
-        print('The network structure of POS Tagger is:\n', tagger_model)
+        print('The network structure of POS Tagger is: \n{} \n'.format(tagger_model))
 
         # 
         return cls(args, fields, tagger_model)

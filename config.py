@@ -10,8 +10,10 @@ class Config(object):
     n_embed = 100          # 词向量的维度
     n_char_embed=50         # char embedding dim
     n_feat_embed=100        # 和词向量拼接的特征
+    embed_dropout=.33        
     n_lstm_layer = 2             # layers of bilstm
     n_lstm_hidden = 400       # lstm的hidden层
+    lstm_dropout = .33
 
     min_freq = 2                # 低频词频率
     fix_len = 20            # 每个单词最多有多少个字符  

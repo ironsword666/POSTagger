@@ -1,14 +1,55 @@
-1
-cuda
+program start time: 2020-12-19 19:40:00.924637 
+
+CUDA_VISIBLE_DEVICES: 3 
+
+device mode: cuda 
+
 Create fields for Tagger !
 The network structure of POS Tagger is:
  Tagger_Model(
   (word_embedding): Embedding(17547, 100)
-  (char_lstm): CharLSTM(
+  (feat_embedding): CharLSTM(
     (embedding): Embedding(4199, 50)
     (lstm): LSTM(50, 50, batch_first=True, bidirectional=True)
   )
+  (embed_dropout): IndependentDropout(p=0.33)
   (bilstm): LSTM(200, 400, num_layers=2, batch_first=True, bidirectional=True)
+  (lstm_dropout): SharedDropout(p=0.33)
   (linear): Linear(in_features=800, out_features=37, bias=True)
 )
 training epoch 1 :
+train loss: 12.215890930758583
+right and total:  14863 20454
+dev accuracy: 0.7266549330204362
+epoch time: 0:03:52.373115
+training epoch 2 :
+train loss: -153.97064359688466
+right and total:  17587 20454
+dev accuracy: 0.8598318177373618
+epoch time: 0:03:47.779943
+training epoch 3 :
+train loss: -307.8431807153019
+right and total:  18213 20454
+dev accuracy: 0.8904370783220886
+epoch time: 0:03:43.433720
+training epoch 4 :
+train loss: -455.7091313114873
+right and total:  18453 20454
+dev accuracy: 0.9021707245526548
+epoch time: 0:03:47.731684
+training epoch 5 :
+train loss: -605.7248557761864
+right and total:  18650 20454
+dev accuracy: 0.9118020925002445
+epoch time: 0:03:44.165596
+training epoch 6 :
+train loss: -752.4289543246045
+right and total:  18649 20454
+dev accuracy: 0.9117532023076171
+epoch time: 0:03:42.127639
+training epoch 7 :
+train loss: -900.1647821120274
+right and total:  18767 20454
+dev accuracy: 0.9175222450376455
+epoch time: 0:03:48.507155
+training epoch 8 :

@@ -3,6 +3,7 @@ import torch.nn as nn
 from torch.nn.utils.rnn import pad_sequence, pack_padded_sequence, pad_packed_sequence
 
 from src.modules.char_lstm import CharLSTM
+from src.modules.dropout import SharedDropout, IndependentDropout
 
 class Tagger_Model(nn.Module):
     '''
@@ -14,16 +15,20 @@ class Tagger_Model(nn.Module):
     '''
 
     def __init__(self, 
-                n_words, 
-                n_chars,
-                n_tags, 
-                n_embed=100, 
-                n_char_embed=50,
-                n_feat_embed=100,
-                n_lstm_hidden=400, 
-                n_lstm_layer=1, 
-                pad_index=0, 
-                unk_index=1):
+                 n_words, 
+                 n_feats,
+                 n_tags, 
+                 feat='char',
+                 n_embed=100, 
+                 n_char_embed=50,
+                 n_feat_embed=100,
+                 embed_dropout=.33,
+                 n_lstm_hidden=400, 
+                 n_lstm_layer=1, 
+                 lstm_dropout=.33,
+                 pad_index=0, 
+                 unk_index=1,
+                 feat_pad_index=0):
         super(Tagger_Model, self).__init__()
 
         self.pad_index = pad_index
@@ -33,10 +38,19 @@ class Tagger_Model(nn.Module):
         self.word_embedding = nn.Embedding(num_embeddings=n_words,
                                            embedding_dim=n_embed)
 
-        # TODO charlstm, pretrained_embedding
-        self.char_lstm = CharLSTM(n_chars=n_chars,
-                                  n_char_embed=n_char_embed,
-                                  n_out=n_feat_embed)
+        # TODO charlstm and bert embedding
+
+        if feat == 'char':
+            # charlstm
+            self.feat_embedding = CharLSTM(n_chars=n_feats,
+                                           n_char_embed=n_char_embed,
+                                           n_out=n_feat_embed,
+                                           pad_index=feat_pad_index)
+
+        elif feat == 'bert':
+            raise NotImplementedError('bert feature hasn\'t been implemented !')
+
+        self.embed_dropout = IndependentDropout(p=embed_dropout)
 
         # LSTM Layer
         self.bilstm = nn.LSTM(input_size=n_embed+n_feat_embed,
@@ -44,6 +58,8 @@ class Tagger_Model(nn.Module):
                               num_layers=n_lstm_layer,
                               batch_first=True,
                               bidirectional=True)
+        
+        self.lstm_dropout = SharedDropout(p=lstm_dropout)
         
         # TODO transform? add a layer transform n_lstm_hidden*2 to n_lstm_hidden then activate
 
@@ -83,7 +99,8 @@ class Tagger_Model(nn.Module):
 
         # we can also use chars[mask] to get Tensor(sum(actual_seq_len), fix_len)
         # feat_embed = self.char_lstm(chars[mask])
-        feat_embed = self.char_lstm(feats)
+        feat_embed = self.feat_embedding(feats)
+        word_embed, feat_embed = self.embed_dropout(word_embed, feat_embed)
         # (batch, seq_len, embedding_dim*2)
         embed = torch.cat((word_embed, feat_embed), dim=-1)
 
@@ -93,7 +110,8 @@ class Tagger_Model(nn.Module):
         x, _ = self.bilstm(x)
         # (batch, seq_len, n_lstm_hidden*2)
         x, _ = pad_packed_sequence(x, batch_first=True)
-
+        x = self.lstm_dropout(x)
+        
         # Linear Layer
 
         # (batch, seq_len, n_lstm_hidden*2) -> (batch, seq_len, tag_nums)

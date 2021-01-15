@@ -151,5 +151,7 @@ if __name__ == '__main__':
     # output = m(i)
     # print(output)
 
-    for k, i in zip({1:0, 2:0}, [3,4]):
-        print(k, i)
+    a = torch.ones(3, 3, 4)
+    print(a[1, 1])
+    b = torch.ones(4, 4)
+    print(b[:, 1])

@@ -1,0 +1,325 @@
+program start time: 2020-12-19 23:03:18.974275 
+
+CUDA_VISIBLE_DEVICES: 3 
+
+device mode: cuda 
+
+Create fields for Tagger !
+
+The network structure of POS Tagger is: 
+Tagger_Model(
+  (word_embedding): Embedding(17547, 100)
+  (feat_embedding): CharLSTM(
+    (embedding): Embedding(4199, 50)
+    (lstm): LSTM(50, 50, batch_first=True, bidirectional=True)
+  )
+  (embed_dropout): IndependentDropout(p=0.33)
+  (bilstm): LSTM(200, 400, num_layers=2, batch_first=True, bidirectional=True)
+  (lstm_dropout): SharedDropout(p=0.33)
+  (linear): Linear(in_features=800, out_features=37, bias=True)
+) 
+
+training epoch 1 :
+train loss: -46.817486062461946
+right and total:  15088 20454
+dev accuracy: 0.7376552263615919
+epoch time: 0:03:46.909439 
+
+training epoch 2 :
+train loss: -323.0453329204041
+right and total:  17800 20454
+dev accuracy: 0.8702454287669893
+epoch time: 0:03:41.565514 
+
+training epoch 3 :
+train loss: -565.5689753779659
+right and total:  18508 20454
+dev accuracy: 0.9048596851471595
+epoch time: 0:03:39.518745 
+
+training epoch 4 :
+train loss: -797.2616411373939
+right and total:  18786 20454
+dev accuracy: 0.9184511586975652
+epoch time: 0:03:32.471956 
+
+training epoch 5 :
+train loss: -1028.3228639202352
+right and total:  18947 20454
+dev accuracy: 0.92632247971057
+epoch time: 0:03:35.609401 
+
+training epoch 6 :
+train loss: -1255.2720525294174
+right and total:  18965 20454
+dev accuracy: 0.9272025031778626
+epoch time: 0:03:41.027051 
+
+training epoch 7 :
+train loss: -1479.3108889732832
+right and total:  19096 20454
+dev accuracy: 0.9336071184120466
+epoch time: 0:03:36.328157 
+
+training epoch 8 :
+train loss: -1701.074248890818
+right and total:  19101 20454
+dev accuracy: 0.9338515693751833
+epoch time: 0:03:45.962813 
+
+training epoch 9 :
+train loss: -1919.6407862533758
+right and total:  19193 20454
+dev accuracy: 0.9383494670969004
+epoch time: 0:03:48.674119 
+
+training epoch 10 :
+train loss: -2135.9498471860534
+right and total:  19246 20454
+dev accuracy: 0.9409406473061503
+epoch time: 0:03:55.021472 
+
+training epoch 11 :
+train loss: -2351.505585093557
+right and total:  19284 20454
+dev accuracy: 0.94279847462599
+epoch time: 0:03:39.858813 
+
+training epoch 12 :
+train loss: -2565.3967375578704
+right and total:  19293 20454
+dev accuracy: 0.9432384863596363
+epoch time: 0:03:42.905316 
+
+training epoch 13 :
+train loss: -2777.2294469762733
+right and total:  19249 20454
+dev accuracy: 0.9410873178840324
+epoch time: 0:03:42.617457 
+
+training epoch 14 :
+train loss: -2989.160557122878
+right and total:  19281 20454
+dev accuracy: 0.942651804048108
+epoch time: 0:04:08.910013 
+
+training epoch 15 :
+train loss: -3200.523955922068
+right and total:  19303 20454
+dev accuracy: 0.9437273882859099
+epoch time: 0:03:47.116393 
+
+training epoch 16 :
+train loss: -3408.481948664159
+right and total:  19310 20454
+dev accuracy: 0.9440696196343014
+epoch time: 0:03:39.760117 
+
+training epoch 17 :
+train loss: -3614.158932532793
+right and total:  19328 20454
+dev accuracy: 0.9449496431015938
+epoch time: 0:04:01.857584 
+
+training epoch 18 :
+train loss: -3819.1056676793983
+right and total:  19393 20454
+dev accuracy: 0.9481275056223721
+epoch time: 0:04:08.519262 
+
+training epoch 19 :
+train loss: -4025.0995460792824
+right and total:  19378 20454
+dev accuracy: 0.9473941527329618
+epoch time: 0:03:42.141428 
+
+training epoch 20 :
+train loss: -4229.075394241898
+right and total:  19344 20454
+dev accuracy: 0.9457318861836316
+epoch time: 0:03:37.262792 
+
+training epoch 21 :
+train loss: -4432.651324990355
+right and total:  19377 20454
+dev accuracy: 0.9473452625403344
+epoch time: 0:03:33.654996 
+
+training epoch 22 :
+train loss: -4633.735984519676
+right and total:  19356 20454
+dev accuracy: 0.9463185684951598
+epoch time: 0:03:33.759528 
+
+training epoch 23 :
+train loss: -4834.573049286266
+right and total:  19347 20454
+dev accuracy: 0.9458785567615137
+epoch time: 0:03:39.364935 
+
+training epoch 24 :
+train loss: -5032.989613474151
+right and total:  19359 20454
+dev accuracy: 0.9464652390730419
+epoch time: 0:03:34.845356 
+
+training epoch 25 :
+train loss: -5231.047140239198
+right and total:  19386 20454
+dev accuracy: 0.9477852742739806
+epoch time: 0:03:33.367144 
+
+training epoch 26 :
+train loss: -5427.182834201389
+right and total:  19409 20454
+dev accuracy: 0.9489097487044099
+epoch time: 0:03:35.019781 
+
+training epoch 27 :
+train loss: -5623.89712336034
+right and total:  19366 20454
+dev accuracy: 0.9468074704214334
+epoch time: 0:03:51.363649 
+
+training epoch 28 :
+train loss: -5818.432587046682
+right and total:  19385 20454
+dev accuracy: 0.9477363840813533
+epoch time: 0:03:35.984067 
+
+training epoch 29 :
+train loss: -6015.323067370756
+right and total:  19363 20454
+dev accuracy: 0.9466607998435513
+epoch time: 0:03:38.529159 
+
+training epoch 30 :
+train loss: -6206.665213879244
+right and total:  19343 20454
+dev accuracy: 0.9456829959910042
+epoch time: 0:03:36.959695 
+
+training epoch 31 :
+train loss: -6398.2080078125
+right and total:  19325 20454
+dev accuracy: 0.9448029725237117
+epoch time: 0:03:35.809644 
+
+training epoch 32 :
+train loss: -6589.434262876158
+right and total:  19340 20454
+dev accuracy: 0.9455363254131222
+epoch time: 0:03:36.723963 
+
+training epoch 33 :
+train loss: -6779.73306086034
+right and total:  19349 20454
+dev accuracy: 0.9459763371467683
+epoch time: 0:03:43.540965 
+
+training epoch 34 :
+train loss: -6971.005485628858
+right and total:  19366 20454
+dev accuracy: 0.9468074704214334
+epoch time: 0:03:40.556055 
+
+training epoch 35 :
+train loss: -7157.53182267554
+right and total:  19359 20454
+dev accuracy: 0.9464652390730419
+epoch time: 0:03:38.527953 
+
+training epoch 36 :
+train loss: -7344.81186101466
+right and total:  19342 20454
+dev accuracy: 0.9456341057983768
+epoch time: 0:03:51.793447 
+
+training epoch 37 :
+train loss: -7532.868592062114
+right and total:  19367 20454
+dev accuracy: 0.9468563606140609
+epoch time: 0:03:36.564108 
+
+training epoch 38 :
+train loss: -7721.219744646991
+right and total:  19382 20454
+dev accuracy: 0.9475897135034712
+epoch time: 0:03:51.332016 
+
+training epoch 39 :
+train loss: -7906.539797935957
+right and total:  19358 20454
+dev accuracy: 0.9464163488804146
+epoch time: 0:03:30.921203 
+
+training epoch 40 :
+train loss: -8091.412893036266
+right and total:  19352 20454
+dev accuracy: 0.9461230077246504
+epoch time: 0:03:32.998058 
+
+training epoch 41 :
+train loss: -8275.56005859375
+right and total:  19348 20454
+dev accuracy: 0.945927446954141
+epoch time: 0:03:29.399854 
+
+training epoch 42 :
+train loss: -8454.973946277007
+right and total:  19321 20454
+dev accuracy: 0.9446074117532023
+epoch time: 0:03:34.181156 
+
+training epoch 43 :
+train loss: -8642.400800540123
+right and total:  19322 20454
+dev accuracy: 0.9446563019458296
+epoch time: 0:03:28.398487 
+
+training epoch 44 :
+train loss: -8821.612666377316
+right and total:  19361 20454
+dev accuracy: 0.9465630194582967
+epoch time: 0:03:39.050278 
+
+training epoch 45 :
+train loss: -9001.763527199075
+right and total:  19364 20454
+dev accuracy: 0.9467096900361788
+epoch time: 0:03:36.245074 
+
+training epoch 46 :
+train loss: -9180.324327256945
+right and total:  19340 20454
+dev accuracy: 0.9455363254131222
+epoch time: 0:03:32.600431 
+
+training epoch 47 :
+train loss: -9354.643651138118
+right and total:  19353 20454
+dev accuracy: 0.9461718979172778
+epoch time: 0:03:35.925220 
+
+training epoch 48 :
+train loss: -9534.149136766975
+right and total:  19374 20454
+dev accuracy: 0.9471985919624524
+epoch time: 0:03:45.489185 
+
+training epoch 49 :
+train loss: -9710.169958043982
+right and total:  19324 20454
+dev accuracy: 0.9447540823310844
+epoch time: 0:03:33.603732 
+
+training epoch 50 :
+train loss: -9886.529429494598
+right and total:  19347 20454
+dev accuracy: 0.9458785567615137
+epoch time: 0:03:32.684278 
+
+right and total:  47403 50319
+test accuracy: 0.9420497227687354
+total_time: 3:03:53.231259
+program end time: 2020-12-20 02:07:38.208847 
